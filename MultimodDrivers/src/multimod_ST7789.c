@@ -99,8 +99,8 @@ void ST7789_SetWindow(int16_t x, int16_t y, int16_t w, int16_t h) {
 
     int16_t x_end;
     int16_t y_end;
-    x_end = x+w;
-    y_end = y+h;
+    x_end = x+w - 1; //imagine if we plugged in width of 1 - it should start and end at the same pixel
+    y_end = y+h - 1;
     // Check boundary conditions
     /*if(x+w>230)
     {x_end = 239;}
