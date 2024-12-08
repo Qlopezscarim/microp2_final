@@ -100,13 +100,33 @@ void Mmap::add_clear_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint
         clear_list.push_back(add_node);
 }
 
+void Mmap::add_update_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id)
+{
+        to_transmit add_node;
+	add_node.type = type;
+        add_node.x_start = x_start;
+        add_node.y_start = y_start;
+        add_node.w = w;
+        add_node.h = h;
+        add_node.color = color;
+        add_node.id = id;
+        if(id == 0)
+        {
+                player_x_start = x_start;
+		player_y_start = y_start;
+                player_w = w;
+                player_h = h;
+        }
+        update_list.push_back(add_node);
+}
+
 void Mmap::moveall(char x, char y)
 {
 	int8_t joystick_x = x - '0' - 5;
 	int8_t joystick_y = y - '0' - 5;
 
-	std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
-	std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
+	//std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
+	//std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
 	
 	
 	for (auto& element : linked_list)
@@ -118,7 +138,7 @@ void Mmap::moveall(char x, char y)
 			//joystick_y = joystick_y - 5;
 			if(abs(joystick_x) >= 2)
 			{
-				if(check_valid_x(element.x_start,element.w,element.y_start,element.h,-joystick_x))
+				if(check_valid_x(element.x_start,element.w,element.y_start,element.h,element.color,-joystick_x))
 				{
 					element.x_start = element.x_start - joystick_x;//joystick is inverted
 					//at this point we have moved the element and need to get rid of the old element 
@@ -126,7 +146,7 @@ void Mmap::moveall(char x, char y)
 			}
 			if(abs(joystick_y) >= 2)
 			{
-				if(check_valid_y(element.x_start,element.w,element.y_start,element.h,joystick_y))
+				if(check_valid_y(element.x_start,element.w,element.y_start,element.h,element.color,joystick_y))
 				{
 					element.y_start = element.y_start + joystick_y; //this one is not inverted
 				}
@@ -135,27 +155,51 @@ void Mmap::moveall(char x, char y)
 	}
 }
 
+void Mmap::init_screen(SerialPort& serial_port)
+{
+	for (const auto& element : linked_list)
+        {
+                i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
+                std::vector<unsigned char> received_data(3);
+                serial_port.Read(received_data, received_data.size());
+        }
+}
+
 void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 {
+	if(clear_list.size() == 0 && update_list.size() == 0)
+	{
+		std::cout << "GOOD WE ENTERED HERE" << std::endl;
+		i2screen(serial_port,1,0,0,0,0,ST7789_BLACK);
+		std::cout << "Getting joystick: " << std::endl;
+		std::vector<unsigned char> received_data(3);
+                serial_port.Read(received_data, received_data.size());
+                joystick_x = received_data[1];
+                joystick_y = received_data[2];
+	}
 	while(clear_list.size() != 0)
+	//for(auto element:clear_list)
 	{
 		auto element = clear_list.back();
 		i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-                std::cout << "ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << std::endl;
+                std::cout << "\nELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << std::endl;
                 std::vector<unsigned char> received_data(3);
                 serial_port.Read(received_data, received_data.size());
                 joystick_x = received_data[1];
                 joystick_y = received_data[2];
 		clear_list.pop_back();
 	}
-	for (const auto& element : linked_list) 
+	while(update_list.size() != 0)
+	//for (const auto& element : update_list) 
 	{
+		auto element = update_list.back();
         	i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-		//std::cout << "ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << "Color: " << element.color  << std::endl;
+		std::cout << "\n NOT CLEARED: ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << "Color: " << element.color  << std::endl;
 		std::vector<unsigned char> received_data(3);
         	serial_port.Read(received_data, received_data.size());
 		joystick_x = received_data[1];
 		joystick_y = received_data[2];
+		update_list.pop_back();
 		//moveall(received_data[1],received_data[2]);
     	}
 }
@@ -284,7 +328,7 @@ void Mmap::generate_object_gps(int gps_location)
 
 }
 
-bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, int8_t move)
+bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move)
 {
 	bool to_return = true;
 	//move left
@@ -297,8 +341,9 @@ bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 		else
 		{
 			//we have decided to move left and thus must clear right side:
-			std::cout << "\nTHE HEIGHT IS : " << y_height;
 			add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
+			//we must also draw the new location on the left
+			add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
 		}
 	}
 	//move right
@@ -312,10 +357,17 @@ bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 		{
 			to_return = false;
 		}
+		else
+		{
+			//we have decided to move right and thus must clear left side:
+                        add_clear_list(1,x_start,y_start,abs(move),y_height,ST7789_BLACK,2);
+			//we now must also draw the new location on the right
+			add_update_list(1,x_start+x_width,y_start,abs(move),y_height,color,2);
+		}
 	}
 	return to_return;
 }
-bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, int8_t move)
+bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move)
 {
 	bool to_return = true;
         if(move < 0)
@@ -324,17 +376,27 @@ bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
                 {
                         to_return = false;
                 }
+		else
+		{
+			//we have decide to move down and thus must clear top
+			add_clear_list(1,x_start,y_start+y_height+move,x_width,abs(move),ST7789_BLACK,2);
+			//we now must also draw the new location on the bottom
+			add_update_list(1,x_start,y_start+move,x_width,abs(move),color,2);
+		}
         }
         if(move > 0)
         {
-                std::cout << "\n\n VALUE I WANT RIGHT NOW " << y_start + y_height + move;
-                std::cout << "\n XSTART IS " << y_start;
-                std::cout << "\n X_WIDTH IS " << y_height;
-                std::cout << "\n MOVE IS " << move;
                 if(y_start + y_height + move > Y_MAX)
                 {
                         to_return = false;
                 }
+		else
+		{
+			//we have decided to move up and thus must clear bottom
+			add_clear_list(1,x_start,y_start,x_width,abs(move),ST7789_BLACK,2);
+			//we now must also draw the new location on the top
+			add_update_list(1,x_start,y_start+y_height,x_width,abs(move),color,2);
+		}
         }
         return to_return;
 }

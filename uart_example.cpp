@@ -38,31 +38,26 @@ int main() {
 
         // Write data to the serial port.
 	Mmap game_instance = Mmap(random_gps);
-	//game_instance.add_list(1,52,52,25,25,ST7789_GREEN,2);
-        //game_instance.add_list(1,50,50,30,30,ST7789_RED,2);
-	
-	//this correlates to filling the screen with black
-//	game_instance.add_list(2,0,0,248,318,ST7789_BLACK,2);
-
-
-	//game_instance.add_list(1,100,125,10,20,ST7789_BLUE,0);
-	//game_instance.add_list(1,190,170,10,20,ST7789_BLUE,1);
-	//game_instance.add_list(1,52,52,25,25,ST7789_GREEN,1);
-//	game_instance.add_list(1,52,52,25,25,ST7789_GREEN,0);
 	
 	//This correlates with a read rectangle at 50,50 with a width of 40 and height of 40
-	game_instance.add_list(1,50,50,40,40,ST7789_RED,0);
-	game_instance.add_list(1,100,100,40,40,ST7789_GREEN,0);
+	game_instance.add_list(1,50,50,40,20,ST7789_RED,0); //void add_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id);
+	game_instance.add_list(1,100,90,40,20,ST7789_GREEN,0);
+	game_instance.add_list(1,140,100,40,20,ST7789_GREEN,0);
+	game_instance.add_list(1,180,100,40,20,ST7789_RED,0);
+	game_instance.add_list(1,100,30,40,20,ST7789_GREEN,0);
+	game_instance.add_list(1,20,180,40,20,ST7789_RED,0);
+	game_instance.add_list(1,90,120,40,20,ST7789_GREEN,0);
+	game_instance.add_list(1,200,140,40,20,ST7789_RED,0);
+	game_instance.add_list(1,10,200,40,20,ST7789_GREEN,0);
+	//game_instance.add_list(1,100-3,100,3,40,ST7789_RED,0);
 
-
-	//game_instance.add_list(1,52,52,25,25,ST7789_GREEN,0);
-	//game_instance.add_list(1,52,52,25,25,ST7789_GREEN,2);
-	//game_instance.add_list(1,75,30,5,5,ST7789_GREEN,1);
 
 	//game_instance.random_rect();
 
 	char joystick_x = 5;
 	char joystick_y = 5;
+
+	game_instance.init_screen(serial_port);
 
 	while(1)
 	{
@@ -71,7 +66,6 @@ int main() {
 	game_instance.moveall(joystick_x,joystick_y);
 	
 	//game_instance.random_rect();
-	//game_instance.inc_rect();
 	}
 
         // Read data from the serial port.
