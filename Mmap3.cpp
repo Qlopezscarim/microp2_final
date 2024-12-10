@@ -226,7 +226,7 @@ void Mmap::Terrain(uint16_t x_start, uint16_t y_start, float scale)
     add_list(1, x_start, y_start, 100 * scale, 50 * scale, grass, 0);  // Grass terrain
     
     // Dirt patch 1 (lower left corner)
-    add_list(1, x_start + (10 * scale), y_start + (20 * scale), 30 * scale, 10 * scale, dirt, 0);  // Dirt patch
+    //add_list(1, x_start + (10 * scale), y_start + (20 * scale), 30 * scale, 10 * scale, dirt, 0);  // Dirt patch
     
     // Dirt patch 2 (upper right corner)
     add_list(1, x_start + (60 * scale), y_start + (10 * scale), 23 * scale, 17 * scale, dirt, 0);  // Dirt patch
@@ -279,7 +279,7 @@ void Mmap::RockyTerrain(uint16_t x_start, uint16_t y_start, float scale)
     add_list(1, x_start + (70 * scale), y_start + (40 * scale), 20 * scale, 8 * scale, dark_rock, 0);  // Rock patch 4
 
     // Small dirt patches to give variation in the terrain
-    add_list(1, x_start + (5 * scale), y_start + (40 * scale), 10 * scale, 5 * scale, dirt, 0);  // Dirt patch 1
+    //add_list(1, x_start + (5 * scale), y_start + (40 * scale), 10 * scale, 5 * scale, dirt, 0);  // Dirt patch 1
     //add_list(1, x_start + (40 * scale), y_start + (50 * scale), 10 * scale, 6 * scale, dirt, 0);  // Dirt patch 2
 }
 

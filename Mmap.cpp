@@ -203,10 +203,10 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 	if(clear_list.size() == 0 && update_list.size() == 0)
 	{
 		i2screen(serial_port,1,0,0,0,0,ST7789_BLACK);
-		std::vector<unsigned char> received_data(3);
+		std::vector<unsigned char> received_data(2);
                 serial_port.Read(received_data, received_data.size());
-                joystick_x = received_data[1];
-                joystick_y = received_data[2];
+                joystick_x = received_data[0];
+                joystick_y = received_data[1];
 	}
 	while(clear_list.size() != 0)
 	//for(auto element:clear_list)
@@ -214,10 +214,10 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 		auto element = clear_list.back();
 		i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
                 //std::cout << "\nELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << std::endl;
-                std::vector<unsigned char> received_data(3);
+                std::vector<unsigned char> received_data(2);
                 serial_port.Read(received_data, received_data.size());
-                joystick_x = received_data[1];
-                joystick_y = received_data[2];
+                joystick_x = received_data[0];
+                joystick_y = received_data[1];
 		clear_list.pop_back();
 	}
 	while(update_list.size() != 0)
@@ -226,10 +226,10 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 		auto element = update_list.back();
         	i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
 		//std::cout << "\n NOT CLEARED: ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << "Color: " << element.color  << std::endl;
-		std::vector<unsigned char> received_data(3);
+		std::vector<unsigned char> received_data(2);
         	serial_port.Read(received_data, received_data.size());
-		joystick_x = received_data[1];
-		joystick_y = received_data[2];
+		joystick_x = received_data[0];
+		joystick_y = received_data[1];
 		update_list.pop_back();
     	}
 }
@@ -391,7 +391,8 @@ bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 			//add_update_list(1,x_start+x_width,y_start,abs(move),y_height,color,2);
 		}
 	}
-	return to_return;
+	//return to_return;
+	return true;
 }
 bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move)
 {
@@ -424,5 +425,6 @@ bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 			//add_update_list(1,x_start,y_start+y_height,x_width,abs(move),color,2);
 		}
         }
-        return to_return;
+        //return to_return;
+	return true;
 }

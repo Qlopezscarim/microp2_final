@@ -24,7 +24,7 @@ int main() {
 
         // Create and open the serial port.
         SerialPort serial_port(serial_port_name);
-        serial_port.Open(SerialPort::BAUD_115200,
+        serial_port.Open(SerialPort::BAUD_1000000,
                          SerialPort::CHAR_SIZE_8,
                          SerialPort::PARITY_NONE,
                          SerialPort::STOP_BITS_1,
@@ -78,9 +78,9 @@ int main() {
 	//game_instance.Terrain2(50,50,1);
 	//game_instance.RockyTerrain(50,50,1);
 
-	for(int i=0;i<2;i++)
+	for(int i=0;i<3;i++)
 	{
-		for(int j=0;j<6;j++)
+		for(int j=0;j<7;j++)
 		{
 			game_instance.GTerrain(i*100,j*50,1,i);
 		}
