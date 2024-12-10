@@ -274,7 +274,7 @@ void beagle_data()
             {
                 uart_index_g = 0;
                 handle_draw();
-                UARTprintf("H%d%d",x_val,y_val);
+                UARTprintf("%d%d",x_val,y_val);
                 //x_val = 5;//resetting to base
                 //y_val = 5;//resetting to base
                 //should reset x_val y_val

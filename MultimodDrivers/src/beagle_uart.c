@@ -54,7 +54,7 @@ void BEAGLE_UART_Init() {
     /*UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
                         (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                          UART_CONFIG_PAR_NONE));*/
-    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 115200,
+    UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 1000000,
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                              UART_CONFIG_PAR_NONE));
 
@@ -66,7 +66,7 @@ void BEAGLE_UART_Init() {
    IntEnable(INT_UART1);  // Enable UART1 interrupt in NVIC
 
     // Initialize UART for standard I/O with the same baud rate
-    UARTStdioConfig(1, 115200, SysCtlClockGet());
+    UARTStdioConfig(1, 1000000, SysCtlClockGet());
 }
 
 /********************************Public Functions***********************************/
