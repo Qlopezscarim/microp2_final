@@ -13,7 +13,7 @@
 
 
 
-
+#define MAGIC			    0xFFFE
 #define ST7789_BLACK                0x0000
 #define ST7789_RED                  0x001F
 #define ST7789_BLUE                 0xF800
@@ -21,6 +21,12 @@
 #define ST7789_WHITE		    0xFFFF
 #define X_MAX			    239
 #define Y_MAX			    319
+#define Y_D 320
+#define X_D 240
+
+
+//uint16_t old_bitmap[Y_D][X_D];
+//uint16_t new_bitmap[Y_D][X_D];
 
 class Mmap
 {
@@ -43,7 +49,8 @@ struct to_transmit
 	uint16_t color;
 	uint8_t id;
 };
-uint8_t bitmap_mmap[153600];
+uint16_t old_bitmap[Y_D][X_D];
+uint16_t new_bitmap[Y_D][X_D];
 
 std::vector<to_transmit> linked_list;
 std::vector<to_transmit> clear_list;
@@ -58,10 +65,30 @@ void add_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint
 void add_clear_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id);
 void add_update_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id);
 void i2screen(SerialPort& serial_port,uint8_t type,uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color);
+void update_bitmap();
 void inc_rect();
 bool check_collision();
 void random_rect();
 void collision();
 void generate_object_gps(int gps_location);
+//start of Mmap2
+void node_check(to_transmit& curr_rect);
+void rectangulize();
+void rect_to_bitmap(std::vector<to_transmit> a_conv, int choice);
+void display_trans(to_transmit to_output);
+void diff();
+void clear_diff();
+void print_portion_bitmap(int choice,uint16_t x_start,uint16_t y_start, uint16_t w, uint16_t h);
+void clear_rectangulize();
+void clear_node_check(to_transmit& curr_rect);
+//start of MMap3
+void Pokeball(uint16_t x_start, uint16_t y_start, float scale);
+void Trainer(uint16_t x_start, uint16_t y_start, float scale);
+void Charizard(uint16_t x_start, uint16_t y_start, float scale);
+void Diglett(uint16_t x_start, uint16_t y_start, float scale);
+void Terrain(uint16_t x_start, uint16_t y_start, float scale);
+void Terrain2(uint16_t x_start, uint16_t y_start, float scale);
+void RockyTerrain(uint16_t x_start, uint16_t y_start, float scale);
+void GTerrain(uint16_t x_start, uint16_t y_start, float scale, int choice);
 };
 #endif

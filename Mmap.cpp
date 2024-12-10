@@ -13,10 +13,14 @@
 Mmap::Mmap(int gps_class)
 {
 	gps_class = gps_class;
-	for(int i=0; i<153600; i++)
-        {
-                bitmap_mmap[i] = 0xff;
-        }
+	for(int i=0; i<Y_D; i++)
+	{
+		for(int j=0; j<X_D; j++)
+		{
+			old_bitmap[i][j] = ST7789_BLACK;
+			new_bitmap[i][j] = ST7789_BLACK;
+		}
+	}
 }
 
 void Mmap::inc_rect()
@@ -35,6 +39,41 @@ void Mmap::inc_rect()
 		x_start = x_start - 239;
 	}
 	add_list(1,x_start,y_start,10,10,ST7789_RED,1);
+	}
+}
+
+void Mmap::update_bitmap()
+{
+	//depreciated
+	for(int i=0; i<240; i++)
+        {
+                for(int j=0; j<320; j++)
+                {
+                        new_bitmap[i][j] = ST7789_BLACK;
+                }
+        }
+	for(auto element:linked_list)
+	{
+		//need to get start and end indicies and shift starts by one because indexes
+		uint16_t x_start = element.x_start - 1;
+		uint16_t x_end = x_start+element.w;
+		uint16_t y_start = element.y_start - 1;
+		uint16_t y_end = y_start+element.h;
+		if(x_start < 0)
+		{x_start = 0;}
+		if(y_start < 0)
+		{y_start = 0;}
+		if(x_end > 239)
+		{x_end = 239;}
+		if(y_end > 319)
+		{y_end = 319;}
+		for(int i=x_start; i<x_end; i++)
+		{
+			for(int j=y_start; j<y_end; j++)
+			{
+				new_bitmap[i][j] = element.color;
+			}
+		}
 	}
 }
 
@@ -138,7 +177,7 @@ void Mmap::moveall(char x, char y)
 			//joystick_y = joystick_y - 5;
 			if(abs(joystick_x) >= 2)
 			{
-				if(check_valid_x(element.x_start,element.w,element.y_start,element.h,element.color,-joystick_x))
+				if(element.id != 2 && check_valid_x(element.x_start,element.w,element.y_start,element.h,element.color,-joystick_x))
 				{
 					element.x_start = element.x_start - joystick_x;//joystick is inverted
 					//at this point we have moved the element and need to get rid of the old element 
@@ -146,7 +185,7 @@ void Mmap::moveall(char x, char y)
 			}
 			if(abs(joystick_y) >= 2)
 			{
-				if(check_valid_y(element.x_start,element.w,element.y_start,element.h,element.color,joystick_y))
+				if(element.id != 2 && check_valid_y(element.x_start,element.w,element.y_start,element.h,element.color,joystick_y))
 				{
 					element.y_start = element.y_start + joystick_y; //this one is not inverted
 				}
@@ -157,21 +196,13 @@ void Mmap::moveall(char x, char y)
 
 void Mmap::init_screen(SerialPort& serial_port)
 {
-	for (const auto& element : linked_list)
-        {
-                i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-                std::vector<unsigned char> received_data(3);
-                serial_port.Read(received_data, received_data.size());
-        }
 }
 
 void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 {
 	if(clear_list.size() == 0 && update_list.size() == 0)
 	{
-		std::cout << "GOOD WE ENTERED HERE" << std::endl;
 		i2screen(serial_port,1,0,0,0,0,ST7789_BLACK);
-		std::cout << "Getting joystick: " << std::endl;
 		std::vector<unsigned char> received_data(3);
                 serial_port.Read(received_data, received_data.size());
                 joystick_x = received_data[1];
@@ -182,7 +213,7 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 	{
 		auto element = clear_list.back();
 		i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-                std::cout << "\nELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << std::endl;
+                //std::cout << "\nELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << std::endl;
                 std::vector<unsigned char> received_data(3);
                 serial_port.Read(received_data, received_data.size());
                 joystick_x = received_data[1];
@@ -194,22 +225,17 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 	{
 		auto element = update_list.back();
         	i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-		std::cout << "\n NOT CLEARED: ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << "Color: " << element.color  << std::endl;
+		//std::cout << "\n NOT CLEARED: ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << "Color: " << element.color  << std::endl;
 		std::vector<unsigned char> received_data(3);
         	serial_port.Read(received_data, received_data.size());
 		joystick_x = received_data[1];
 		joystick_y = received_data[2];
 		update_list.pop_back();
-		//moveall(received_data[1],received_data[2]);
     	}
 }
 
 void Mmap::send256(SerialPort& serial_port)
 {
-	for(int i=0; i<153600; i++)
-	{
-		serial_port.Write(std::string(1,char(bitmap_mmap[i])));
-	}
 }
 
 void Mmap::i2screen(SerialPort& serial_port,uint8_t type,uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color)
@@ -341,9 +367,9 @@ bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 		else
 		{
 			//we have decided to move left and thus must clear right side:
-			add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
+			//add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
 			//we must also draw the new location on the left
-			add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
+			//add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
 		}
 	}
 	//move right
@@ -360,9 +386,9 @@ bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 		else
 		{
 			//we have decided to move right and thus must clear left side:
-                        add_clear_list(1,x_start,y_start,abs(move),y_height,ST7789_BLACK,2);
+                        //add_clear_list(1,x_start,y_start,abs(move),y_height,ST7789_BLACK,2);
 			//we now must also draw the new location on the right
-			add_update_list(1,x_start+x_width,y_start,abs(move),y_height,color,2);
+			//add_update_list(1,x_start+x_width,y_start,abs(move),y_height,color,2);
 		}
 	}
 	return to_return;
@@ -379,9 +405,9 @@ bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 		else
 		{
 			//we have decide to move down and thus must clear top
-			add_clear_list(1,x_start,y_start+y_height+move,x_width,abs(move),ST7789_BLACK,2);
+			//add_clear_list(1,x_start,y_start+y_height+move,x_width,abs(move),ST7789_BLACK,2);
 			//we now must also draw the new location on the bottom
-			add_update_list(1,x_start,y_start+move,x_width,abs(move),color,2);
+			//add_update_list(1,x_start,y_start+move,x_width,abs(move),color,2);
 		}
         }
         if(move > 0)
@@ -393,9 +419,9 @@ bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, ui
 		else
 		{
 			//we have decided to move up and thus must clear bottom
-			add_clear_list(1,x_start,y_start,x_width,abs(move),ST7789_BLACK,2);
+			//add_clear_list(1,x_start,y_start,x_width,abs(move),ST7789_BLACK,2);
 			//we now must also draw the new location on the top
-			add_update_list(1,x_start,y_start+y_height,x_width,abs(move),color,2);
+			//add_update_list(1,x_start,y_start+y_height,x_width,abs(move),color,2);
 		}
         }
         return to_return;
