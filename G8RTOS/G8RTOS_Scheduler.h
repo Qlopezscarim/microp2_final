@@ -19,7 +19,7 @@
 /* Status Register with the Thumb-bit Set */
 #define THUMBBIT            0x01000000
 
-#define MAX_THREADS         12
+#define MAX_THREADS         6
 #define MAX_PTHREADS        4
 #define STACKSIZE           512
 #define OSINT_PRIORITY      7

@@ -87,6 +87,8 @@
 #define ST7789_BLUE                 0xF800
 #define ST7789_GREEN                0x07E0
 
+
+
 /*************************************Defines***************************************/
 
 /******************************Data Type Definitions********************************/
@@ -115,6 +117,7 @@ void ST7789_DrawRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16
 void ST7789_DrawHLine(uint16_t x, uint16_t y, uint16_t w, uint16_t color);
 void ST7789_UartScreen();
 void end_me(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+void ST7789_DrawChar(uint16_t x, uint16_t y, uint8_t choice);
 
 
 /********************************Public Functions***********************************/

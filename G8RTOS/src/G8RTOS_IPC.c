@@ -66,7 +66,7 @@ int32_t G8RTOS_InitFIFO(uint32_t FIFO_index) {
 // Reads data from head pointer of FIFO.
 // Param "FIFO_index": Index of FIFO block
 // Return: int32_t, data at head pointer
-int32_t G8RTOS_ReadFIFO(uint32_t FIFO_index) {
+int8_t G8RTOS_ReadFIFO(uint32_t FIFO_index) {
     if (FIFO_index >= MAX_NUMBER_OF_FIFOS) {
         return INT32_MAX;
     } else {
@@ -76,7 +76,7 @@ int32_t G8RTOS_ReadFIFO(uint32_t FIFO_index) {
         G8RTOS_WaitSemaphore(&FIFOs[FIFO_index].currentSize);
 
         // Get the data stored in FIFO head
-        int32_t data = *FIFOs[FIFO_index].head;
+        int8_t data = *FIFOs[FIFO_index].head;
 
         // Increment head pointer
         FIFOs[FIFO_index].head++;
@@ -97,7 +97,7 @@ int32_t G8RTOS_ReadFIFO(uint32_t FIFO_index) {
 // Writes data to tail of buffer.
 // Param "FIFO_index": Index of FIFO block
 // Return: int32_t, data at head pointer
-int32_t G8RTOS_WriteFIFO(uint32_t FIFO_index, uint32_t data) {
+int32_t G8RTOS_WriteFIFO(uint32_t FIFO_index, uint8_t data) {
     // If index is out of range, return -1
     if (FIFO_index >= MAX_NUMBER_OF_FIFOS) {
         return -1;

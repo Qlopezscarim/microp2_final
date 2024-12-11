@@ -16,8 +16,8 @@
 
 /*************************************Defines***************************************/
 
-#define FIFO_SIZE 32
-#define MAX_NUMBER_OF_FIFOS 4
+#define FIFO_SIZE 32 //Really may need to increase this!
+#define MAX_NUMBER_OF_FIFOS 1
 
 /*************************************Defines***************************************/
 
@@ -29,10 +29,19 @@
 
 /********************************Public Variables***********************************/
 /********************************Public Variables***********************************/
+typedef struct{
+    uint8_t type;
+    uint16_t x_start;
+    uint16_t y_start;
+    uint16_t w;
+    uint16_t h;
+    uint16_t color;
+} to_screen;
+
 typedef struct G8RTOS_FIFO_t {
-    uint32_t buffer[FIFO_SIZE];
-    uint32_t *head;
-    uint32_t *tail;
+    uint8_t buffer[FIFO_SIZE];
+    uint8_t *head;
+    uint8_t *tail;
     uint32_t lost_data;
     semaphore_t currentSize;
     semaphore_t mutex;
@@ -51,8 +60,8 @@ G8RTOS_FIFO_t FIFOs[MAX_NUMBER_OF_FIFOS];
 /********************************Public Functions***********************************/
 
 int32_t G8RTOS_InitFIFO(uint32_t FIFO_index);
-int32_t G8RTOS_ReadFIFO(uint32_t FIFO_index);
-int32_t G8RTOS_WriteFIFO(uint32_t FIFO_index, uint32_t data);
+int8_t G8RTOS_ReadFIFO(uint32_t FIFO_index);
+int32_t G8RTOS_WriteFIFO(uint32_t FIFO_index, uint8_t data);
 
 /********************************Public Functions***********************************/
 

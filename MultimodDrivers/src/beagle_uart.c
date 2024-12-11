@@ -58,6 +58,8 @@ void BEAGLE_UART_Init() {
                             (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
                              UART_CONFIG_PAR_NONE));
 
+    UARTFIFOLevelSet(UART1_BASE, UART_FIFO_TX6_8,
+                     UART_FIFO_RX1_8);
 
     // Enable the UART1 interrupt in the UART module
    UARTIntEnable(UART1_BASE, UART_INT_RX);  // Enable RX interrupt and RX timeout interrupt

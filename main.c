@@ -88,14 +88,7 @@ typedef struct{
 } blocks;
 //#pragma pack() emergency savior thing
 
-typedef struct{
-    uint8_t type;
-    uint16_t x_start;
-    uint16_t y_start;
-    uint16_t w;
-    uint16_t h;
-    uint16_t color;
-} to_screen;
+
 
 to_screen to_send_s;
 
@@ -358,6 +351,10 @@ void handle_draw()
     {
         ST7789_Fill(to_send_s.color);
     }
+    else if(to_send_s.type == 3)
+    {
+        ST7789_DrawChar((240/2)-15,(320/2)-5,to_send_s.x_start);//magic stuff
+    }
 }
 
 
@@ -371,7 +368,6 @@ int main(void)
     G8RTOS_InitSemaphore(&joystick_semaphore, 0);
     G8RTOS_InitSemaphore(&sw_semaphore, 0);
     G8RTOS_InitSemaphore(&spi_semaphore, 1);
-
 
 
 
@@ -406,5 +402,5 @@ int main(void)
     G8RTOS_Launch();
 
 
-	return 0;
+    return 0;
 }
