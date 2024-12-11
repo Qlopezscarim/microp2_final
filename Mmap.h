@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstdio>
 #include <cstdint>
+#include <fstream>
 
 
 
@@ -24,6 +25,36 @@
 #define Y_D 320
 #define X_D 240
 
+#define DELAY 5000
+
+
+/*void retry_write(SerialPort& serial_port, const std::string& data) {
+        int loops = 0;
+        bool write_occured = false;
+        while (loops<2)
+        {
+        loops++;
+        try {
+            serial_port.Write(data);  // Attempt to write the entire data
+            write_occured = true;
+            break;  // Exit the loop on success
+                }
+        catch (const std::runtime_error& e)
+                {
+                        if (errno == EINTR)
+                        {
+                                usleep(100);
+                                continue;  // Retry on interruption
+                        }
+                throw std::runtime_error("Serial port write failed: " + std::string(e.what()));
+                }
+        }
+
+        if(write_occured == false)
+        {
+        retry_write(serial_port,data);
+        }
+}*/
 
 //uint16_t old_bitmap[Y_D][X_D];
 //uint16_t new_bitmap[Y_D][X_D];
@@ -35,6 +66,7 @@ bool check_valid_x(int8_t move);
 bool check_valid_y(int8_t move);
 bool check_x_collision(int8_t move);
 bool check_y_collision(int8_t move);
+void retry_write(SerialPort& serial_port, const std::string& data);
 
 public:
 uint16_t player_x_start;
@@ -62,6 +94,7 @@ uint16_t new_bitmap[Y_D][X_D];
 std::vector<to_transmit> linked_list;
 std::vector<to_transmit> clear_list;
 std::vector<to_transmit> update_list;
+std::vector<to_transmit> context_list;
 uint16_t num_objects;
 Mmap(int gps_class);
 void moveall(char x, char y);
@@ -88,6 +121,7 @@ void clear_diff();
 void print_portion_bitmap(int choice,uint16_t x_start,uint16_t y_start, uint16_t w, uint16_t h);
 void clear_rectangulize();
 void clear_node_check(to_transmit& curr_rect);
+void win_diff();
 //start of MMap3
 void Pokeball(uint16_t x_start, uint16_t y_start, float scale);
 void Trainer(uint16_t x_start, uint16_t y_start, float scale);
@@ -103,5 +137,14 @@ void Background();
 void TrainerWalkRight(uint16_t x_start, uint16_t y_start, float scale);
 void update_trainer();
 void SimpleWeed(uint16_t x_start, uint16_t y_start, float scale);
+//start of Mmap4
+void save_context();
+void restore_context();
+void encounter(SerialPort& serial_port);
+void read_pokemon(uint8_t pokemon);
+void indicate_bitmap(SerialPort& serial_port);
+void Gradient(uint16_t x_start, uint16_t y_start, float scale);
+void mov_rect(bool& left);
+
 };
 #endif

@@ -8,9 +8,46 @@
 #include <vector>
 #include <cstdio>
 #include <cstdint>
-#define DELAY 5000
+
+#include <stdexcept>
+
 
 #define COMP 2
+
+
+void Mmap::retry_write(SerialPort& serial_port, const std::string& data) {
+    	int loops = 0;
+	bool write_occured = false;
+	while (loops<2) 
+	{
+	loops++;
+        try {
+            serial_port.Write(data);  // Attempt to write the entire data
+	    write_occured = true;
+            break;  // Exit the loop on success
+		}
+        catch (const std::runtime_error& e) 
+		{
+            		if (errno == EINTR) 
+			{
+				usleep(100);
+                		continue;  // Retry on interruption
+				//std::cerr << "\n -----------BAD" << std::endl;
+         		}
+            	throw std::runtime_error("Serial port write failed: " + std::string(e.what()));
+        	}
+    	}
+	
+	if(write_occured == false)
+	{
+	retry_write(serial_port,data);
+	}
+}
+
+
+
+
+
 
 Mmap::Mmap(int gps_class)
 {
@@ -219,7 +256,7 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 {
 	if(clear_list.size() == 0 && update_list.size() == 0)
 	{
-		i2screen(serial_port,1,0,0,0,0,ST7789_BLACK);
+		i2screen(serial_port,1,0,0,0,0,999);
 		std::vector<unsigned char> received_data(2);
                 serial_port.Read(received_data, received_data.size());
                 joystick_x = received_data[0];
@@ -259,47 +296,39 @@ void Mmap::i2screen(SerialPort& serial_port,uint8_t type,uint16_t x_start, uint1
 {
 
 //const std::string type_high = std::string(1,char((type>>8 & 0xFF)));
-const std::string type_low = std::string(1,char((type>>0 & 0xFF)));
+std::string type_low = std::string(1,char((type>>0 & 0xFF)));
 
-const std::string x_high = std::string(1,char((x_start>>8 & 0xFF)));
-const std::string x_low = std::string(1,char((x_start>>0 & 0xFF)));
+std::string x_high = std::string(1,char((x_start>>8 & 0xFF)));
+std::string x_low = std::string(1,char((x_start>>0 & 0xFF)));
 
-const std::string y_high = std::string(1,char((y_start>>8 & 0xFF)));
-const std::string y_low = std::string(1,char((y_start>>0 & 0xFF)));
+std::string y_high = std::string(1,char((y_start>>8 & 0xFF)));
+std::string y_low = std::string(1,char((y_start>>0 & 0xFF)));
 
-const std::string w_high = std::string(1,char((w>>8 & 0xFF)));
-const std::string w_low = std::string(1,char((w>>0 & 0xFF)));
+std::string w_high = std::string(1,char((w>>8 & 0xFF)));
+std::string w_low = std::string(1,char((w>>0 & 0xFF)));
 
-const std::string h_high = std::string(1,char((h>>8 & 0xFF)));
-const std::string h_low = std::string(1,char((h>>0 & 0xFF)));
+std::string h_high = std::string(1,char((h>>8 & 0xFF)));
+std::string h_low = std::string(1,char((h>>0 & 0xFF)));
 
-const std::string color_high = std::string(1,char((color>>8 & 0xFF)));
-const std::string color_low = std::string(1,char((color>>0 & 0xFF)));
+std::string color_high = std::string(1,char((color>>8 & 0xFF)));
+std::string color_low = std::string(1,char((color>>0 & 0xFF)));
 
-serial_port.Write(type_low);
-usleep(DELAY);
-serial_port.Write(x_low);
-usleep(DELAY);
-serial_port.Write(x_high);
-usleep(DELAY);
-serial_port.Write(y_low);
-usleep(DELAY);
-serial_port.Write(y_high);
-usleep(DELAY);
-serial_port.Write(w_low);
-usleep(DELAY);
-serial_port.Write(w_high);
-usleep(DELAY);
-serial_port.Write(h_low);
-usleep(DELAY);
-serial_port.Write(h_high);
-usleep(DELAY);
-serial_port.Write(color_low);
-usleep(DELAY);
-serial_port.Write(color_high);
-usleep(DELAY);
+//std::string to_send = type_low+x_low+x_high+y_low+y_high+w_low+w_high+h_low+h_high+color_low+color_high;
 
-//std::cout << "\n" << type_low;
+//serial_port.Write(to_send);
+//usleep(DELAY);
+retry_write(serial_port,type_low);
+retry_write(serial_port,x_low);
+retry_write(serial_port,x_high);
+retry_write(serial_port,y_low);
+retry_write(serial_port,y_high);
+retry_write(serial_port,w_low);
+retry_write(serial_port,w_high);
+retry_write(serial_port,h_low);
+retry_write(serial_port,h_high);
+retry_write(serial_port,color_low);
+retry_write(serial_port,color_high);
+
 }
 bool Mmap::check_collision(char x, char y)
 {

@@ -348,3 +348,25 @@ void Mmap::clear_node_check(to_transmit& curr_rect)
         }
         return;
 }
+
+
+void Mmap::win_diff()
+{
+        for(int i=0;i<Y_D;i++)
+        {
+                for(int j=0;j<X_D;j++)
+                {
+                        uint16_t old_value = old_bitmap[i][j];
+                        uint16_t new_value = new_bitmap[i][j];
+                        if(i<120 && i>99 && j<200 && j>40)
+			{
+				//inside gradient
+                        	old_bitmap[i][j] = old_bitmap[i][j] - new_bitmap[i][j];
+			}
+			else
+			{
+				old_bitmap[i][j] = 0;
+			}
+                }
+       }
+}
