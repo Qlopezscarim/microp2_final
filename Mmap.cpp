@@ -10,6 +10,8 @@
 #include <cstdint>
 #define DELAY 5000
 
+#define COMP 2
+
 Mmap::Mmap(int gps_class)
 {
 	gps_class = gps_class;
@@ -164,20 +166,35 @@ void Mmap::moveall(char x, char y)
 	int8_t joystick_x = x - '0' - 5;
 	int8_t joystick_y = y - '0' - 5;
 
+	joystick_x = -joystick_x;
+	joystick_y = -joystick_y;
+
 	//std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
 	//std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
-	
+
+	bool x_valid = check_valid_x(joystick_x);
+	bool y_valid = check_valid_y(joystick_y);
+	//std::cout << "\nY_valid:\t" << y_valid << "X_VALID:\t" <<x_valid<<std::endl;
+	bool valid_move = x_valid | y_valid;
+
+//	while(!valid_move)
+
+	//handle displacement:
+	if(abs(joystick_x) > 2 && valid_move)
+	{x_displacement = x_displacement + joystick_x;}
+	if(abs(joystick_y) > 2 && valid_move)
+        {y_displacement = y_displacement + joystick_y;}
 	
 	for (auto& element : linked_list)
 	{
 		//can make this more efficient by only running if joystick certian value ig
-		if(element.id == 0) //if the element is intended to be moved
+		if(element.id == 0 || element.id == 3) //if the element is intended to be moved
 		{
 			//joystick_x = joystick_x - 5;
 			//joystick_y = joystick_y - 5;
 			if(abs(joystick_x) >= 2)
 			{
-				if(element.id != 2 && check_valid_x(element.x_start,element.w,element.y_start,element.h,element.color,-joystick_x))
+				if(element.id != 2 && valid_move)
 				{
 					element.x_start = element.x_start - joystick_x;//joystick is inverted
 					//at this point we have moved the element and need to get rid of the old element 
@@ -185,7 +202,7 @@ void Mmap::moveall(char x, char y)
 			}
 			if(abs(joystick_y) >= 2)
 			{
-				if(element.id != 2 && check_valid_y(element.x_start,element.w,element.y_start,element.h,element.color,joystick_y))
+				if(element.id != 2 && valid_move)
 				{
 					element.y_start = element.y_start + joystick_y; //this one is not inverted
 				}
@@ -284,30 +301,25 @@ usleep(DELAY);
 
 //std::cout << "\n" << type_low;
 }
-bool Mmap::check_collision()
+bool Mmap::check_collision(char x, char y)
 {
+        int8_t joystick_x = x - '0' - 5;
+        int8_t joystick_y = y - '0' - 5;
 
-for (auto it = linked_list.begin(); it != linked_list.end(); ++it)
-        {
-                to_transmit* element = &(*it);
-                //std::cout << "Current color: " << element.color;
-                if(element->id != 0 && element->id != 2)
-                {
-                        //if(element->x_start + x_i < 240 && element->x_start - x_i > 0 && abs(x_i) > 1)
-                        uint16_t xs = element->x_start;
-			uint16_t ys = element->y_start;
-			uint16_t w = element->w;
-			uint16_t h = element->h;
-			if(xs == player_x_start)
-			{
-				std::cout << "Kill this: " << xs;
-				std::cout << "Player place: " << player_x_start;
-				collision();
-				return 1;
-			}
-                }
-	}
-	return 0;
+        joystick_x = -joystick_x;
+        joystick_y = -joystick_y;
+
+        //std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
+        //std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
+
+        bool x_valid = check_x_collision(joystick_x);
+        bool y_valid = check_y_collision(joystick_y);
+        //std::cout << "\nY_valid:\t" << y_valid << "X_VALID:\t" <<x_valid<<std::endl;
+        bool collision_occured = x_valid && y_valid;
+	if(collision_occured)
+	{std::cout << "COLLISION OCCURED!\n" <<std::endl;}
+	return collision_occured;
+
 }
 
 void Mmap::collision()
@@ -354,77 +366,105 @@ void Mmap::generate_object_gps(int gps_location)
 
 }
 
-bool Mmap::check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move)
+bool Mmap::check_valid_x(int8_t move)
 {
 	bool to_return = true;
-	//move left
-	if(move < 0)
+	move = -move;
+	for(auto element:linked_list)
 	{
-		if(x_start + move < 0)
+		uint16_t x_1 = element.x_start;
+		uint16_t x_2 = element.x_start+element.w;
+		for(uint16_t x_c=x_1; x_c<x_2;x_c++)
 		{
-			to_return = false;
-		}
-		else
-		{
-			//we have decided to move left and thus must clear right side:
-			//add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
-			//we must also draw the new location on the left
-			//add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
+			if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2)
+			{
+				to_return = false;
+			}
+			else
+			{
+				//std::cout << "This set passed x_c:\t" << x_c << "\tMove::\t" << static_cast<int>(move) << "\tstart:\t" << (240/2)-16 << std::endl;
+				//we have decided to move left and thus must clear right side:
+				//add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
+				//we must also draw the new location on the left
+				//add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
+			}
 		}
 	}
-	//move right
-	if(move > 0)
-	{
-		//std::cout << "\n\n VALUE I WANT RIGHT NOW " << x_start + x_width + move;
-		//std::cout << "\n XSTART IS " << x_start;
-		//std::cout << "\n X_WIDTH IS " << x_width;
-		//std::cout << "\n MOVE IS " << move;
-		if(x_start + x_width + move > X_MAX)
-		{
-			to_return = false;
-		}
-		else
-		{
-			//we have decided to move right and thus must clear left side:
-                        //add_clear_list(1,x_start,y_start,abs(move),y_height,ST7789_BLACK,2);
-			//we now must also draw the new location on the right
-			//add_update_list(1,x_start+x_width,y_start,abs(move),y_height,color,2);
-		}
-	}
-	//return to_return;
-	return true;
+	return to_return;
 }
-bool Mmap::check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move)
+bool Mmap::check_valid_y(int8_t move)
 {
 	bool to_return = true;
-        if(move < 0)
+        for(auto element:linked_list)
         {
-                if(y_start + move < 0)
-                {
-                        to_return = false;
-                }
-		else
+		uint16_t y_1 = element.y_start;
+                uint16_t y_2 = element.y_start+element.h;
+                for(uint16_t y_c=y_1; y_c<y_2;y_c++)
 		{
-			//we have decide to move down and thus must clear top
-			//add_clear_list(1,x_start,y_start+y_height+move,x_width,abs(move),ST7789_BLACK,2);
-			//we now must also draw the new location on the bottom
-			//add_update_list(1,x_start,y_start+move,x_width,abs(move),color,2);
+                	if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2)
+                	{
+                        	to_return = false;
+                	}
+                	else
+                	{
+                        	//we have decided to move left and thus must clear right side:
+                        	//add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
+                        	//we must also draw the new location on the left
+                        	//add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
+                	}
 		}
         }
-        if(move > 0)
+        return to_return;
+}
+
+bool Mmap::check_x_collision(int8_t move)
+{
+        bool to_return = false;
+        move = -move;
+        for(auto element:linked_list)
         {
-                if(y_start + y_height + move > Y_MAX)
+                uint16_t x_1 = element.x_start;
+                uint16_t x_2 = element.x_start+element.w;
+                for(uint16_t x_c=x_1; x_c<x_2;x_c++)
                 {
-                        to_return = false;
+                        if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id == 3)
+                        {
+                                to_return = true;
+                        }
+                        else
+                        {
+                                //std::cout << "This set passed x_c:\t" << x_c << "\tMove::\t" << static_cast<int>(move) << "\tstart:\t" << (240/2)-16 << std::$
+                                //we have decided to move left and thus must clear right side:
+                                //add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
+                                //we must also draw the new location on the left
+                                //add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
+                        }
                 }
-		else
-		{
-			//we have decided to move up and thus must clear bottom
-			//add_clear_list(1,x_start,y_start,x_width,abs(move),ST7789_BLACK,2);
-			//we now must also draw the new location on the top
-			//add_update_list(1,x_start,y_start+y_height,x_width,abs(move),color,2);
-		}
         }
-        //return to_return;
-	return true;
+        return to_return;
+}
+
+bool Mmap::check_y_collision(int8_t move)
+{
+        bool to_return = false;
+        for(auto element:linked_list)
+        {
+                uint16_t y_1 = element.y_start;
+                uint16_t y_2 = element.y_start+element.h;
+                for(uint16_t y_c=y_1; y_c<y_2;y_c++)
+                {
+                        if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id == 3)
+                        {
+                                to_return = true;
+                        }
+                        else
+                        {
+                                //we have decided to move left and thus must clear right side:
+                                //add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
+                                //we must also draw the new location on the left
+                                //add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
+                        }
+                }
+        }
+        return to_return;
 }

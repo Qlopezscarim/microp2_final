@@ -31,14 +31,21 @@
 class Mmap
 {
 private:
-bool check_valid_x(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move);
-bool check_valid_y(uint16_t x_start, uint16_t x_width,uint16_t y_start, uint16_t y_height, uint16_t color, int8_t move);
+bool check_valid_x(int8_t move);
+bool check_valid_y(int8_t move);
+bool check_x_collision(int8_t move);
+bool check_y_collision(int8_t move);
+
 public:
 uint16_t player_x_start;
 uint16_t player_y_start;
 uint16_t player_w;
 uint16_t player_h;
+int32_t x_displacement = 0;
+int32_t y_displacement = 0;
 int gps_class;
+std::string cur_direction = "F";
+std::string old_direction = "B";
 struct to_transmit
 {
 	uint8_t type;
@@ -67,7 +74,7 @@ void add_update_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t 
 void i2screen(SerialPort& serial_port,uint8_t type,uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color);
 void update_bitmap();
 void inc_rect();
-bool check_collision();
+bool check_collision(char x, char y);
 void random_rect();
 void collision();
 void generate_object_gps(int gps_location);
@@ -89,6 +96,12 @@ void Diglett(uint16_t x_start, uint16_t y_start, float scale);
 void Terrain(uint16_t x_start, uint16_t y_start, float scale);
 void Terrain2(uint16_t x_start, uint16_t y_start, float scale);
 void RockyTerrain(uint16_t x_start, uint16_t y_start, float scale);
-void GTerrain(uint16_t x_start, uint16_t y_start, float scale, int choice);
+void Check_TB();
+void GTerrain(uint8_t to_spawn);
+void GDirection(char joystick_x, char joystick_y);
+void Background();
+void TrainerWalkRight(uint16_t x_start, uint16_t y_start, float scale);
+void update_trainer();
+void SimpleWeed(uint16_t x_start, uint16_t y_start, float scale);
 };
 #endif

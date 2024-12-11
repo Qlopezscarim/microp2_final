@@ -39,6 +39,7 @@ int main() {
         // Write data to the serial port.
 	Mmap game_instance = Mmap(random_gps);
 	
+	game_instance.add_update_list(3,1,0,0,0,0,0);
 	//This correlates with a read rectangle at 50,50 with a width of 40 and height of 40
 	/*game_instance.add_list(1,50,50,40,20,ST7789_RED,0); //void add_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id);
 	game_instance.add_list(1,100,90,40,20,ST7789_GREEN,0);
@@ -78,15 +79,20 @@ int main() {
 	//game_instance.Terrain2(50,50,1);
 	//game_instance.RockyTerrain(50,50,1);
 
-	for(int i=0;i<3;i++)
+	/*for(int i=0;i<3;i++)
 	{
 		for(int j=0;j<7;j++)
 		{
 			game_instance.GTerrain(i*100,j*50,1,i);
 		}
-	}
+	}*/
+	game_instance.Background();
+	//game_instance.GTerrain(0,0,3,1);
+	game_instance.Terrain2((240/2)-15-21, (320/2)-5-16, 1);
+	game_instance.SimpleWeed(50,50,1);
 
-	game_instance.Trainer(100,100,.8);
+	//game_instance.Trainer(100,100,.8);
+	//game_instance.TrainerWalkRight(100,100,.8);
 	//game_instance.add_list(1,10,200,40,20,ST7789_BLUE,0);
         //game_instance.add_list(1,40,40,50,50,ST7789_GREEN,0);
         //game_instance.add_list(1,100-3,100,20,40,ST7789_RED,0);
@@ -147,6 +153,7 @@ int main() {
 	game_instance.sendall(serial_port,joystick_x,joystick_y); 	//sends updated list and gets joystick input
 	//THIS IS THE DEAD SPACE the TIVA is now waiting for a uart transmission interrupt
 	game_instance.moveall(joystick_x,joystick_y); 			//Moves in linked_list all to_transmit blocks
+	game_instance.check_collision(joystick_x,joystick_y);
 
 	game_instance.rect_to_bitmap(game_instance.linked_list, 1);     //updates the new bitmap to hold where everything new is
 	//std::cout << "\nMOVING WITH INPUT 0,5: " << std::endl;
@@ -163,6 +170,11 @@ int main() {
 	game_instance.rectangulize(); 					//puts in update_list all the things that need to be drawn
 	game_instance.rect_to_bitmap(game_instance.linked_list, 0); 	//updating old bitmap
 	game_instance.rect_to_bitmap(game_instance.linked_list, 1);     //updates the new bitmap -- still need to clear old stuff!
+	game_instance.GDirection(joystick_x,joystick_y);
+	game_instance.Check_TB();
+
+	game_instance.update_trainer();
+
 	//std::cout << "\nAFTER RECTUANGULARIZATION AND RESET: " << std::endl;
         //game_instance.print_portion_bitmap(0,6,6,14,14);
         //game_instance.print_portion_bitmap(1,6,6,14,14);

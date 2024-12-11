@@ -136,6 +136,11 @@ void Mmap::rect_to_bitmap(std::vector<to_transmit> a_conv, int choice) //clears 
 		{
 			uint16_t x_1 = element.x_start;
 			uint16_t y_1 = element.y_start;
+			//check for overflow
+			if(x_1 >1000)
+			{x_1 = 0;}
+			if(y_1 > 1000)
+			{y_1 = 0;}
 			uint16_t y_2 = y_1+element.h;
 			uint16_t x_2 = x_1+element.w;
 			for(int i=y_1;i<y_2;i++)
