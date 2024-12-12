@@ -27,8 +27,8 @@ uint8_t buffer_B[256];
 
 // y-axis controls z or y
 uint8_t joystick_y = 0;
-uint8_t sw_1_pressed = 0;
-uint8_t sw_2_pressed = 0;
+volatile int8_t sw_1_pressed = 0;
+volatile int8_t sw_2_pressed = 0;
 
 semaphore_t sw_semaphore;
 semaphore_t joystick_semaphore;
@@ -269,14 +269,9 @@ void beagle_data()
                 {
                     uart_index_g = 0;
                     handle_draw();
-                    if(give_joy == 1)
-                    {
-                        UARTprintf("%d%d",x_val,y_val);
-                    }
-                    else
-                    {
-                        UARTprintf("%d%d",sw_1_pressed,sw_2_pressed);
-                    }
+
+                    UARTprintf("%d%d%d%d",x_val,y_val,sw_1_pressed,sw_2_pressed);
+
                 }
         }
        //check to see if we finished sending full bitmap:
