@@ -107,22 +107,6 @@ void idle()
     while(1)
     {
         uint32_t status = UARTIntStatus(UART1_BASE, true); // Get interrupt status
-        //UARTprintf("HELLO\n");
-        if(joystick_y == 1)
-        {
-        //UARTprintf("joystick pressed: %d\n",joystick_y);
-        joystick_y = 0;
-        }
-        if(sw_1_pressed == 1)
-        {
-        //UARTprintf("switch one pressed: %d\n",sw_1_pressed);
-        sw_1_pressed = 0;
-        }
-        if(sw_2_pressed == 1)
-        {
-        //UARTprintf("switched two pressed : %d\n",sw_2_pressed);
-        sw_2_pressed = 0;
-        }
     }
 }
 
@@ -249,6 +233,7 @@ void handle_draw();
 
 int last = 0;
 uint32_t total_pix = 0;
+bool give_joy = 1;
 
 void beagle_data()
 {
@@ -284,13 +269,14 @@ void beagle_data()
                 {
                     uart_index_g = 0;
                     handle_draw();
-                    UARTprintf("%d%d",x_val,y_val);
-                    //UARTprintf("%d%d%d%d",x_val,y_val,sw_1_pressed,sw_2_pressed);
-                    //sw_1_pressed = 0;
-                    //sw_2_pressed = 0;
-                    //x_val = 5;//resetting to base
-                    //y_val = 5;//resetting to base
-                    //should reset x_val y_val
+                    if(give_joy == 1)
+                    {
+                        UARTprintf("%d%d",x_val,y_val);
+                    }
+                    else
+                    {
+                        UARTprintf("%d%d",sw_1_pressed,sw_2_pressed);
+                    }
                 }
         }
        //check to see if we finished sending full bitmap:
@@ -299,6 +285,9 @@ void beagle_data()
             last=0;
             total_pix = 0;
             ST7789_Deselect();
+            give_joy = !give_joy;
+            sw_1_pressed = 0;
+            sw_2_pressed = 0;
         }
        }
     }
@@ -415,7 +404,7 @@ int main(void)
 
     G8RTOS_AddThread(idle,255,"idle_thread");
     //G8RTOS_AddThread(Read_JoystickPress,0,"joystick");
-    //G8RTOS_AddThread(Read_Buttons,0,"buttons");
+    G8RTOS_AddThread(Read_Buttons,0,"buttons");
     //G8RTOS_AddThread(display_grid,1,"dispgr");
     //G8RTOS_AddThread(game_logic,1,"gamel");
     //G8RTOS_AddThread(check_conditions,1,"hi");
