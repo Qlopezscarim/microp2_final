@@ -460,3 +460,17 @@ void Mmap::start_screen(SerialPort& serial_port)
                 }
         }
 }
+
+void Mmap::manage_old()
+{
+	uint16_t max = 0;
+	max = max - 1;
+	for (auto& element : linked_list)	
+	{
+		if(element.x_start>400 && element.x_start < max-100)
+		{
+			element.h = 0;
+			element.w = 0;
+		}
+	}
+}

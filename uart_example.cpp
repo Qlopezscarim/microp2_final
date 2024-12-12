@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
         // Create and open the serial port.
         SerialPort serial_port(serial_port_name);
-        serial_port.Open(SerialPort::BAUD_115200,
+        serial_port.Open(SerialPort::BAUD_1000000,//BAUD_115200,
                          SerialPort::CHAR_SIZE_8,
                          SerialPort::PARITY_NONE,
                          SerialPort::STOP_BITS_1,
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 	std::string name = argv[1];
 	Mmap game_instance = Mmap(random_gps,name);
 
-	//game_instance.start_screen(serial_port);
+	game_instance.start_screen(serial_port);
 
 	/*int rand_pokemon = 9;
 
@@ -120,6 +120,7 @@ int main(int argc, char* argv[]) {
 	game_instance.rectangulize(); 					//puts in update_list all the things that need to be drawn
 	game_instance.rect_to_bitmap(game_instance.linked_list, 0); 	//updating old bitmap
 	game_instance.rect_to_bitmap(game_instance.linked_list, 1);     //updates the new bitmap -- still need to clear old stuff!
+	game_instance.manage_old();
 	game_instance.GDirection(joystick_x,joystick_y);
 	game_instance.Check_TB();
 

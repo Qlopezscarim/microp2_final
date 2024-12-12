@@ -223,16 +223,16 @@ void Mmap::Terrain(uint16_t x_start, uint16_t y_start, float scale)
     uint16_t water = ST7789_BLUE * 0.4 + ST7789_GREEN * 0.6 + ST7789_RED * 0.8;  // Water blue
     
     // Ground (Grass area)
-    add_list(1, x_start, y_start, 100 * scale, 50 * scale, grass, 0);  // Grass terrain
+    add_list(1, x_start, y_start, 100 * scale, 50 * scale, grass, 7);  // Grass terrain
     
     // Dirt patch 1 (lower left corner)
-    //add_list(1, x_start + (10 * scale), y_start + (20 * scale), 30 * scale, 10 * scale, dirt, 0);  // Dirt patch
+    add_list(1, x_start + (10 * scale), y_start + (20 * scale), 30 * scale, 10 * scale, dirt, 0);  // Dirt patch
     
     // Dirt patch 2 (upper right corner)
-    //add_list(1, x_start + (60 * scale), y_start + (10 * scale), 23 * scale, 17 * scale, dirt, 0);  // Dirt patch
+    add_list(1, x_start + (60 * scale), y_start + (10 * scale), 23 * scale, 17 * scale, dirt, 0);  // Dirt patch
     
     // Water area (center bottom)
-    //add_list(1, x_start + (35 * scale), y_start + (30 * scale), 30 * scale, 15 * scale, water, 0); // Water
+    add_list(1, x_start + (35 * scale), y_start + (30 * scale), 30 * scale, 15 * scale, water, 0); // Water
     
 }
 
@@ -391,7 +391,16 @@ void Mmap::GTerrain(uint8_t to_spawn)
 		uint16_t to_spawn = std::rand()%2;
 		if(to_spawn == 0)
 		{
-                	Terrain2(x_start,y_start,1);
+                	//Terrain2(x_start,y_start,1);
+			uint16_t to_spawn_2 = std::rand()%2;
+			if(to_spawn_2 == 1)
+			{
+				Terrain(x_start,y_start,1);
+			}
+			else
+			{
+				Terrain2(x_start,y_start,1);
+			}
 		}
 		else
 		{

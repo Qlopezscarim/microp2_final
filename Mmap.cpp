@@ -356,15 +356,25 @@ std::string color_low = std::string(1,char((color>>0 & 0xFF)));
 //serial_port.Write(to_send);
 //usleep(DELAY);
 retry_write(serial_port,type_low);
+usleep(DELAY);
 retry_write(serial_port,x_low);
+usleep(DELAY);
 retry_write(serial_port,x_high);
+usleep(DELAY);
 retry_write(serial_port,y_low);
+usleep(DELAY);
 retry_write(serial_port,y_high);
+usleep(DELAY);
 retry_write(serial_port,w_low);
+usleep(DELAY);
 retry_write(serial_port,w_high);
+usleep(DELAY);
 retry_write(serial_port,h_low);
+usleep(DELAY);
 retry_write(serial_port,h_high);
+usleep(DELAY);
 retry_write(serial_port,color_low);
+usleep(DELAY);
 retry_write(serial_port,color_high);
 
 }
@@ -449,7 +459,7 @@ bool Mmap::check_valid_x(int8_t move, to_transmit element)
 	uint16_t x_2 = element.x_start+element.w;
 	for(uint16_t x_c=x_1; x_c<x_2;x_c++)
 	{
-		if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2 && element.id == 0)
+		if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2 && element.id == 0 && x_1 < 1000)
 		{
 			to_return = false;
 		}
@@ -471,7 +481,7 @@ bool Mmap::check_valid_y(int8_t move, to_transmit element)
         uint16_t y_2 = element.y_start+element.h;
         for(uint16_t y_c=y_1; y_c<y_2;y_c++)
 	{
-                if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2 && element.id == 0)
+                if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2 && element.id == 0 && y_1 < 1000)
                 {
                         to_return = false;
                 }

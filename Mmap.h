@@ -25,7 +25,7 @@
 #define Y_D 320
 #define X_D 240
 
-#define DELAY 5000
+#define DELAY 250
 
 
 /*void retry_write(SerialPort& serial_port, const std::string& data) {
@@ -153,6 +153,7 @@ void read_file(std::vector<int>& to_return);
 void pokedex(SerialPort& serial_port);
 void nav_pokedex(int& index,char joystick_x, int size_pokedex);
 void start_screen(SerialPort& serial_port);
+void manage_old();
 
 };
 #endif
