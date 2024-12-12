@@ -11,6 +11,7 @@
 #include <inc/hw_ints.h>
 #include <inc/hw_nvic.h>
 #include <driverlib/pwm.h>
+#include "MultimodDrivers/multimod_ST7789.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -246,35 +247,62 @@ void GPIOD_Handler() {
 int handle_read(char received, int uart_index);
 void handle_draw();
 
+int last = 0;
+uint32_t total_pix = 0;
 
 void beagle_data()
 {
     uint32_t status = UARTIntStatus(UART1_BASE, true); // Get interrupt status
     UARTIntClear(UART1_BASE, status); // Clear the interrupt
 
+
     // Handle the received data
     if (status & UART_INT_RX) {
         while (UARTCharsAvail(UART1_BASE)) {
             char receivedChar = UARTCharGet(UART1_BASE);
-            int last = handle_read(receivedChar,uart_index_g);
-            //handle read sets last to 1 when finished reading a whole transmission.
-            if(last == 0)//we need to keep reading
+            if(last == 99)
             {
-                uart_index_g++;
-                //UARTIntClear(UART1_BASE, status); // Clear the interrupt
+                ST7789_WriteData(receivedChar);
+                total_pix++;
             }
-            else
+
+            if(last != 99)
             {
-                uart_index_g = 0;
-                handle_draw();
-                UARTprintf("%d%d",x_val,y_val);
-                //x_val = 5;//resetting to base
-                //y_val = 5;//resetting to base
-                //should reset x_val y_val
-            }
+                last = handle_read(receivedChar,uart_index_g);
+                //handle read sets last to 1 when finished reading a whole transmission.
+                if(last == 0)//we need to keep reading
+                {
+                    uart_index_g++;
+                    //UARTIntClear(UART1_BASE, status); // Clear the interrupt
+                }
+                else if(last == 99)
+                {
+                    //we wish to send an entire bitmap :/
+                    uart_index_g = 0;
+                }
+                else
+                {
+                    uart_index_g = 0;
+                    handle_draw();
+                    UARTprintf("%d%d%d%d",x_val,y_val,sw_1_pressed,sw_2_pressed);
+                    sw_1_pressed = 0;
+                    sw_2_pressed = 0;
+                    //x_val = 5;//resetting to base
+                    //y_val = 5;//resetting to base
+                    //should reset x_val y_val
+                }
         }
+       //check to see if we finished sending full bitmap:
+        if(total_pix == 240*320*2)
+        {
+            last=0;
+            total_pix = 0;
+            ST7789_Deselect();
+        }
+       }
     }
 }
+
 
 
 /*void test_uart_me()
@@ -295,6 +323,12 @@ int handle_read(char received, int uart_index)
     if(uart_index == 0)
     {
         to_send_s.type = received;
+        if(to_send_s.type == 99)
+        {
+            ST7789_Select();
+            ST7789_SetWindow(0, 0, 240, 320);
+            return 99;
+        }
     }
     else if(uart_index == 1)
     {
@@ -392,7 +426,7 @@ int main(void)
 
     //G8RTOS_Add_PeriodicEvent(Gen_obs,300*9,1200*3);
 
-    //G8RTOS_Add_APeriodicEvent(GPIOE_Handler,5,20);
+    G8RTOS_Add_APeriodicEvent(GPIOE_Handler,6,20);
     //G8RTOS_Add_APeriodicEvent(GPIOD_Handler,5,19);
 
     G8RTOS_Add_APeriodicEvent(beagle_data,5,22);
@@ -400,6 +434,7 @@ int main(void)
 
 
     G8RTOS_Launch();
+    //a reset communication thread! NOT THE WORST IDEA EVER!
 
 
     return 0;
