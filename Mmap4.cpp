@@ -8,6 +8,8 @@ void Mmap::save_context()
 {
 	while(update_list.size() != 0)
 	{update_list.pop_back();}
+	while(clear_list.size() != 0)
+        {clear_list.pop_back();}
 	while(linked_list.size() != 0)
         {
                 auto element = linked_list.back();
@@ -19,6 +21,10 @@ void Mmap::save_context()
 
 void Mmap::restore_context()
 {
+	while(update_list.size() != 0)
+        {update_list.pop_back();}
+	while(clear_list.size() != 0)
+        {clear_list.pop_back();}
 	while(context_list.size() != 0)
         {
                 auto element = context_list.back();
@@ -75,6 +81,7 @@ void Mmap::encounter(SerialPort& serial_port)
 			if(sw_1 == '1')
 			{
                         	indicate_bitmap(serial_port,11);
+				return;
 			}
 		}
 	}
