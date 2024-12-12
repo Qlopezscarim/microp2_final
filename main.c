@@ -284,9 +284,10 @@ void beagle_data()
                 {
                     uart_index_g = 0;
                     handle_draw();
-                    UARTprintf("%d%d%d%d",x_val,y_val,sw_1_pressed,sw_2_pressed);
-                    sw_1_pressed = 0;
-                    sw_2_pressed = 0;
+                    UARTprintf("%d%d",x_val,y_val);
+                    //UARTprintf("%d%d%d%d",x_val,y_val,sw_1_pressed,sw_2_pressed);
+                    //sw_1_pressed = 0;
+                    //sw_2_pressed = 0;
                     //x_val = 5;//resetting to base
                     //y_val = 5;//resetting to base
                     //should reset x_val y_val
