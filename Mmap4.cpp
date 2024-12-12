@@ -43,47 +43,39 @@ void Mmap::encounter(SerialPort& serial_port)
 	add_list(0,rand_x+40,100,3,30,ST7789_BLUE,0);
 	
 	
-	char joystick_x = 5;
-        char joystick_y = 5;
+	char sw_1 = '0';
+        char sw_2 = '0';
 	
 	bool initialize = true;
 
 	while(1)
 	{
-		sendall(serial_port,joystick_x,joystick_y);       //sends updated list and gets joystick input
+		sendall(serial_port,sw_1,sw_2);       //sends updated list and gets joystick input
         	//THIS IS THE DEAD SPACE the TIVA is now waiting for a uart transmission interrupt
 		//can cheack to break here
 		if(initialize)
 		{
 			initialize = !initialize;
-			indicate_bitmap(serial_port);
+			indicate_bitmap(serial_port,0);
 		}
 		else
 		{
 			mov_rect(left);
         		rect_to_bitmap(linked_list, 1);     //updates the new bitmap to hold where everything newis
 			
-			//std::cout << "\nBefore diff\n" << std::endl;
-			//print_portion_bitmap(0,40,100,20,20);
-        		//print_portion_bitmap(1,40,100,20,20);
 			
 			win_diff();//stores non-zero values where there are changes in window into old_bitmap
 			
-			//std::cout << "\nAfter\n" << std::endl;
-			//print_portion_bitmap(0,40,100,20,20);
-                        //print_portion_bitmap(1,40,100,20,20);
 
                 	rectangulize();                                   //puts in update_list all the things that need to be drawn
-			//for(auto element: update_list)
-			//{
-			//	std::cout << "\nNew element x_start:\t"<< element.x_start << "Y-start:\t" << element.y_start;
-			//}
-
-			//while(1);
 
                 	rect_to_bitmap(linked_list, 0);     //updating old bitmap
                 	rect_to_bitmap(linked_list, 1);     //updates the new bitmap -- still need to clear old stuff!
 			std::cout << "X_loc:\t" << linked_list.back().x_start;
+			if(sw_1 == '1')
+			{
+                        	indicate_bitmap(serial_port,11);
+			}
 		}
 	}
 }
@@ -114,14 +106,47 @@ void Mmap::read_pokemon(uint8_t pokemon)
     	}
 }
 
-void Mmap::indicate_bitmap(SerialPort& serial_port)
+void Mmap::indicate_bitmap(SerialPort& serial_port, int choice)
 {
 const std::string type_low = std::string(1,char((99>>0 & 0xFF)));
 
 serial_port.Write(type_low);
 usleep(DELAY);
 
-std::string filename = "bitmaps/charizard_bitmap.txt";
+std::string filename;
+
+if(choice == 0)
+{
+	filename = "bitmaps/charizard_bitmap.txt";
+}
+else if(choice == 1)
+{
+	
+}
+else if(choice == 2)
+{
+
+}
+else if(choice == 3)
+{
+}
+else if(choice == 4)
+{
+}
+else if(choice == 5)
+{
+}
+else if(choice == 6)
+{
+}
+else if(choice == 10)
+{
+	filename = "bitmaps/caught_bitmap.txt";//to be inserted
+}
+else if(choice == 11)
+{
+	filename = "bitmaps/escaped_bitmap.txt";
+}
 
 std::ifstream file(filename);
 if (!file)

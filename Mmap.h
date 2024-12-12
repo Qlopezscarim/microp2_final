@@ -142,7 +142,7 @@ void save_context();
 void restore_context();
 void encounter(SerialPort& serial_port);
 void read_pokemon(uint8_t pokemon);
-void indicate_bitmap(SerialPort& serial_port);
+void indicate_bitmap(SerialPort& serial_port,int choice);
 void Gradient(uint16_t x_start, uint16_t y_start, float scale);
 void mov_rect(bool& left);
 
