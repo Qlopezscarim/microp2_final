@@ -75,12 +75,13 @@ struct to_transmit
 private:
 bool check_valid_x(int8_t move, to_transmit element);
 bool check_valid_y(int8_t move, to_transmit element);
-bool check_x_collision(int8_t move);
-bool check_y_collision(int8_t move);
+bool check_x_collision(int8_t move, to_transmit element);
+bool check_y_collision(int8_t move, to_transmit element);
 void retry_write(SerialPort& serial_port, const std::string& data);
 void smart_read(SerialPort& serial_port, std::vector<unsigned char>& received_data);
 
 public:
+std::string User;
 uint16_t player_x_start;
 uint16_t player_y_start;
 uint16_t player_w;
@@ -98,10 +99,10 @@ std::vector<to_transmit> clear_list;
 std::vector<to_transmit> update_list;
 std::vector<to_transmit> context_list;
 uint16_t num_objects;
-Mmap(int gps_class);
+Mmap(int gps_class, std::string User);
 void moveall(char x, char y);
 void init_screen(SerialPort& serial_port);
-void sendall(SerialPort& serial_port,char& joystick_x, char& joystick_y);
+void sendall(SerialPort& serial_port,char& joystick_x, char& joystick_y, char& sw1, char&sw2);
 void send256(SerialPort& serial_port);
 void add_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id);
 void add_clear_list(uint8_t type, uint16_t x_start, uint16_t y_start, uint16_t w, uint16_t h, uint16_t color, uint8_t id);
@@ -147,6 +148,10 @@ void read_pokemon(uint8_t pokemon);
 void indicate_bitmap(SerialPort& serial_port,int choice);
 void Gradient(uint16_t x_start, uint16_t y_start, float scale);
 void mov_rect(bool& left);
+void write_to_file(int pokemon);
+void read_file(std::vector<int>& to_return);
+void pokedex(SerialPort& serial_port);
+void nav_pokedex(int& index,char joystick_x, int size_pokedex);
 
 };
 #endif

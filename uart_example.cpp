@@ -37,17 +37,29 @@ int main() {
         }
 
         // Write data to the serial port.
-	Mmap game_instance = Mmap(random_gps);
+	std::string name = "defualt";
+	Mmap game_instance = Mmap(random_gps,name);
 
+	/*int rand_pokemon = 9;
+
+	std::ofstream file("users/" + std::string("defualt") + ".txt", std::ios::app);
+        if (!file) {
+                         std::cerr << "Unable to open or create file!" << std::endl;
+                   }
+        file << rand_pokemon << std::endl;
+        file.close();*/
 	
 	game_instance.add_update_list(3,1,0,0,0,0,0);
 	game_instance.Background();
 	game_instance.Terrain2((240/2)-15-21, (320/2)-5-16, 1);
 	game_instance.SimpleWeed(90,100,1);
+	game_instance.SimpleWeed(130,30,1);
 
 
 	char joystick_x = 5;
 	char joystick_y = 5;
+	char sw2 = '0';
+	char sw1 = '0';
 
 	//safe to clear context here!
 	game_instance.save_context();
@@ -69,7 +81,7 @@ int main() {
 	//initialization finished - send to screen now!
 	while(1)
 	{
-	game_instance.sendall(serial_port,joystick_x,joystick_y); 	//sends updated list and gets joystick input
+	game_instance.sendall(serial_port,joystick_x,joystick_y,sw1,sw2); 	//sends updated list and gets joystick input
 	//THIS IS THE DEAD SPACE the TIVA is now waiting for a uart transmission interrupt
 	game_instance.moveall(joystick_x,joystick_y); 			//Moves in linked_list all to_transmit blocks
 	bool is_encounter = game_instance.check_collision(joystick_x,joystick_y);
@@ -79,6 +91,12 @@ int main() {
 		game_instance.save_context();
 		game_instance.encounter(serial_port);
         	game_instance.restore_context();
+	}
+	else if(sw2 == '1')
+	{
+		game_instance.save_context();
+		game_instance.pokedex(serial_port);
+		game_instance.restore_context();
 	}
 
 	game_instance.rect_to_bitmap(game_instance.linked_list, 1);     //updates the new bitmap to hold where everything new is
@@ -118,7 +136,7 @@ int main() {
 	{
 	}
 	
-	game_instance.sendall(serial_port,joystick_x,joystick_y);       //sends updated list and gets joystick input
+	//game_instance.sendall(serial_port,joystick_x,joystick_y);       //sends updated list and gets joystick input
 
 	std::cout << "WE FINISHED NICELY" << std::endl;
 

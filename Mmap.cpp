@@ -47,7 +47,7 @@ void Mmap::retry_write(SerialPort& serial_port, const std::string& data) {
 
 void Mmap::smart_read(SerialPort& serial_port,std::vector<unsigned char>& received_data)
 {
-	while(received_data.size() != 2)
+	while(received_data.size() != 4)
 	{
 		try
 		{
@@ -68,8 +68,9 @@ void Mmap::smart_read(SerialPort& serial_port,std::vector<unsigned char>& receiv
 
 
 
-Mmap::Mmap(int gps_class)
+Mmap::Mmap(int gps_class, std::string User)
 {
+	User = User;
 	gps_class = gps_class;
 	for(int i=0; i<Y_D; i++)
 	{
@@ -279,7 +280,7 @@ void Mmap::init_screen(SerialPort& serial_port)
 {
 }
 
-void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
+void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y,char& sw1, char&sw2)
 {
 	if(clear_list.size() == 0 && update_list.size() == 0)
 	{
@@ -290,6 +291,8 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 		smart_read(serial_port,received_data);
                 joystick_x = received_data[0];
                 joystick_y = received_data[1];
+		sw1 = received_data[2];
+		sw2 = received_data[3];
 	}
 	while(clear_list.size() != 0)
 	//for(auto element:clear_list)
@@ -302,6 +305,8 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 		smart_read(serial_port,received_data);
                 joystick_x = received_data[0];
                 joystick_y = received_data[1];
+		sw1 = received_data[2];
+                sw2 = received_data[3];
 		clear_list.pop_back();
 	}
 	while(update_list.size() != 0)
@@ -315,6 +320,8 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 		smart_read(serial_port,received_data);
 		joystick_x = received_data[0];
 		joystick_y = received_data[1];
+		sw1 = received_data[2];
+                sw2 = received_data[3];
 		update_list.pop_back();
     	}
 }
@@ -371,14 +378,18 @@ bool Mmap::check_collision(char x, char y)
 
         //std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
         //std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
-
-        bool x_valid = check_x_collision(joystick_x);
-        bool y_valid = check_y_collision(joystick_y);
-        //std::cout << "\nY_valid:\t" << y_valid << "X_VALID:\t" <<x_valid<<std::endl;
-        bool collision_occured = x_valid && y_valid;
-	if(collision_occured)
+	bool is_collision = false;
+	for(auto element: linked_list)
+	{
+        	bool x_valid = check_x_collision(joystick_x,element);
+        	bool y_valid = check_y_collision(joystick_y,element);
+        	bool collision_occured = x_valid && y_valid;
+		if(collision_occured)
+		{is_collision = true;}
+	}
+	if(is_collision)
 	{std::cout << "COLLISION OCCURED!\n" <<std::endl;}
-	return collision_occured;
+	return is_collision;
 
 }
 
@@ -434,7 +445,7 @@ bool Mmap::check_valid_x(int8_t move, to_transmit element)
 	uint16_t x_2 = element.x_start+element.w;
 	for(uint16_t x_c=x_1; x_c<x_2;x_c++)
 	{
-		if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2)
+		if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2 && element.id == 0)
 		{
 			to_return = false;
 		}
@@ -456,7 +467,7 @@ bool Mmap::check_valid_y(int8_t move, to_transmit element)
         uint16_t y_2 = element.y_start+element.h;
         for(uint16_t y_c=y_1; y_c<y_2;y_c++)
 	{
-                if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2)
+                if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2 && element.id == 0)
                 {
                         to_return = false;
                 }
@@ -471,38 +482,33 @@ bool Mmap::check_valid_y(int8_t move, to_transmit element)
         return to_return;
 }
 
-bool Mmap::check_x_collision(int8_t move)
+bool Mmap::check_x_collision(int8_t move, to_transmit element)
 {
         bool to_return = false;
         move = -move;
-        for(auto element:linked_list)
+        uint16_t x_1 = element.x_start;
+        uint16_t x_2 = element.x_start+element.w;
+        for(uint16_t x_c=x_1; x_c<x_2;x_c++)
         {
-                uint16_t x_1 = element.x_start;
-                uint16_t x_2 = element.x_start+element.w;
-                for(uint16_t x_c=x_1; x_c<x_2;x_c++)
+        	if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id == 3)
                 {
-                        if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id == 3)
-                        {
-                                to_return = true;
-                        }
-                        else
-                        {
+                        to_return = true;
+                }
+                else
+                {
                                 //std::cout << "This set passed x_c:\t" << x_c << "\tMove::\t" << static_cast<int>(move) << "\tstart:\t" << (240/2)-16 << std::$
                                 //we have decided to move left and thus must clear right side:
                                 //add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
                                 //we must also draw the new location on the left
                                 //add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
-                        }
                 }
         }
         return to_return;
 }
 
-bool Mmap::check_y_collision(int8_t move)
+bool Mmap::check_y_collision(int8_t move, to_transmit element)
 {
         bool to_return = false;
-        for(auto element:linked_list)
-        {
                 uint16_t y_1 = element.y_start;
                 uint16_t y_2 = element.y_start+element.h;
                 for(uint16_t y_c=y_1; y_c<y_2;y_c++)
@@ -519,6 +525,5 @@ bool Mmap::check_y_collision(int8_t move)
                                 //add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
                         }
                 }
-        }
         return to_return;
 }

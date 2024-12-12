@@ -25,6 +25,7 @@ void Mmap::restore_context()
         {update_list.pop_back();}
 	while(clear_list.size() != 0)
         {clear_list.pop_back();}
+	
 	while(context_list.size() != 0)
         {
                 auto element = context_list.back();
@@ -49,21 +50,25 @@ void Mmap::encounter(SerialPort& serial_port)
 	add_list(0,rand_x+40,100,3,30,ST7789_BLUE,0);
 	
 	
+	char joystick_x = 5;
+	char joystick_y = 5;
 	char sw_1 = '0';
         char sw_2 = '0';
 	
 	bool initialize = true;
 
+	int rand_pokemon = 0;
+
 	while(1)
 	{
-		sendall(serial_port,sw_1,sw_2);       //sends updated list and gets joystick input
+		sendall(serial_port,joystick_x,joystick_y,sw_1,sw_2);       //sends updated list and gets joystick input
         	//THIS IS THE DEAD SPACE the TIVA is now waiting for a uart transmission interrupt
 		//can cheack to break here
 		if(initialize)
 		{
 			initialize = !initialize;
 			std::srand(time(0));
-                        uint16_t rand_pokemon = (abs(std::rand())%10);
+                        rand_pokemon = (abs(std::rand())%10);
 			indicate_bitmap(serial_port,rand_pokemon);
 		}
 		else
@@ -95,6 +100,8 @@ void Mmap::encounter(SerialPort& serial_port)
 				}
 				else
 				{
+					//caught it:
+					write_to_file(rand_pokemon);
 					indicate_bitmap(serial_port,10);
 				}
 				return;
@@ -267,4 +274,134 @@ void Mmap::mov_rect(bool& left)
 		}
 	}
 	
+}
+
+void Mmap::write_to_file(int rand_pokemon)
+{
+        std::ofstream file("users/" + std::string("defualt") + ".txt", std::ios::app);
+        if (!file) {
+                         std::cerr << "Unable to open or create file!" << std::endl;
+                   }
+        file << rand_pokemon << std::endl;
+        file.close();
+
+}
+
+void Mmap::read_file(std::vector<int>& to_return)
+{
+	// Open the file in read mode
+    std::ifstream file("users/" + std::string("defualt") + ".txt");
+    if (!file) {
+        std::cerr << "Unable to open file for reading!" << std::endl;
+        return;  // Exit the function if the file can't be opened
+    }
+
+    int value;
+    // Read the file line by line and add each value to the vector
+    while (file >> value) {
+        to_return.push_back(value);
+    }
+
+    // Close the file
+    file.close();
+}
+
+
+void Mmap::pokedex(SerialPort& serial_port)
+{
+        //THIS MUST BE THE MOST RECENT ITEM!
+
+	std::vector<int> pokemon_caught;
+	read_file(pokemon_caught);
+	
+
+
+        char joystick_x = 5;
+        char joystick_y = 5;
+        char sw_1 = '0';
+        char sw_2 = '0';
+
+        bool initialize = true;
+
+	if(pokemon_caught.size() <= 0)
+	{
+		return;
+	}
+
+	int index = 0;
+        int curr_pokemon = pokemon_caught[0];
+	int old_pokemon = -1;
+	
+
+        while(1)
+        {
+                sendall(serial_port,joystick_x,joystick_y,sw_1,sw_2);       //sends updated list and gets joystick input
+                //THIS IS THE DEAD SPACE the TIVA is now waiting for a uart transmission interrupt
+                //can cheack to break here
+                if(initialize)
+                {
+                        initialize = !initialize;
+                        if(curr_pokemon != old_pokemon)
+			{
+                        	indicate_bitmap(serial_port,curr_pokemon);
+			}
+			old_pokemon = curr_pokemon;
+                }
+                else
+                {
+                        rect_to_bitmap(linked_list, 1);     //updates the new bitmap to hold where everything newis
+
+
+                        win_diff();//stores non-zero values where there are changes in window into old_bitmap
+
+
+//                        rectangulize();                                   //puts in update_list all the things that need to be drawn
+
+                        rect_to_bitmap(linked_list, 0);     //updating old bitmap
+                        rect_to_bitmap(linked_list, 1);     //updates the new bitmap -- still need to clear old stuff!
+                        
+			if(sw_1 == '1')
+                        {
+                                return;
+                        }
+			
+			if(abs(joystick_x) > 2)
+			{
+				nav_pokedex(index,joystick_x,pokemon_caught.size());
+				curr_pokemon = pokemon_caught[index];
+				initialize = true;
+			}
+                }
+        }
+}
+
+void Mmap::nav_pokedex(int& index,char joystick_x_in, int size_pokedex)
+{
+	int8_t joystick_x = joystick_x_in - '0' - 5;
+	bool move_right;
+	if(joystick_x < 0 && abs(joystick_x) > 2)
+	{
+		move_right = false;
+	}
+	else if(abs(joystick_x) > 2)
+	{
+		move_right = true;
+	}
+
+	if(move_right)
+	{
+		if(index + 1 < size_pokedex)
+		{
+			index = index + 1;
+		}
+	}
+
+	if(!move_right)
+	{
+		if(index - 1 >= 0)
+		{
+			index = index - 1;
+		}
+	}
+
 }
