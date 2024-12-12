@@ -45,7 +45,26 @@ void Mmap::retry_write(SerialPort& serial_port, const std::string& data) {
 }
 
 
+void Mmap::smart_read(SerialPort& serial_port,std::vector<unsigned char>& received_data)
+{
+	while(received_data.size() != 2)
+	{
+		try
+		{
+			//std::vector<unsigned char> received_data(2);
+			unsigned char data;
+			data = serial_port.ReadByte(10000); // Timeout of 1000 ms
+                	received_data.push_back(data);
+		}
+		catch (const SerialPort::ReadTimeout&) 
+		{
+			//assuming the uart is waiting ig?
+			std::string nothing = "0";
+			retry_write(serial_port,nothing);
+		}
 
+	}
+}
 
 
 
@@ -208,11 +227,19 @@ void Mmap::moveall(char x, char y)
 
 	//std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
 	//std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
+	bool valid_move = 1;
 
-	bool x_valid = check_valid_x(joystick_x);
-	bool y_valid = check_valid_y(joystick_y);
-	//std::cout << "\nY_valid:\t" << y_valid << "X_VALID:\t" <<x_valid<<std::endl;
-	bool valid_move = x_valid | y_valid;
+	for(auto element : linked_list)
+	{
+		bool x_valid = check_valid_x(joystick_x, element);
+		bool y_valid = check_valid_y(joystick_y, element);
+		//std::cout << "\nY_valid:\t" << y_valid << "X_VALID:\t" <<x_valid<<std::endl;
+		bool el_valid_move = x_valid | y_valid;
+		if(el_valid_move == 0)
+		{
+			valid_move = 0;
+		}
+	}
 
 //	while(!valid_move)
 
@@ -257,8 +284,10 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 	if(clear_list.size() == 0 && update_list.size() == 0)
 	{
 		i2screen(serial_port,1,0,0,0,0,999);
-		std::vector<unsigned char> received_data(2);
-                serial_port.Read(received_data, received_data.size());
+		std::cout << "\nELEMENT INFO: x_start, y_start,w,h: \t" << 1 << "\t, " << 0 << "\t, " << 99;
+		std::vector<unsigned char> received_data;//(2);
+                //serial_port.Read(received_data, received_data.size());
+		smart_read(serial_port,received_data);
                 joystick_x = received_data[0];
                 joystick_y = received_data[1];
 	}
@@ -267,9 +296,10 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 	{
 		auto element = clear_list.back();
 		i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-                //std::cout << "\nELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << std::endl;
-                std::vector<unsigned char> received_data(2);
-                serial_port.Read(received_data, received_data.size());
+                std::cout << "\nELEMENT INFO: x_start, y_start,w,h: \t" << element.x_start << "\t, " << element.y_start << "\t, " << element.w << "\t, " << element.h << std::endl;
+                std::vector<unsigned char> received_data;//(2);
+                //serial_port.Read(received_data, received_data.size());
+		smart_read(serial_port,received_data);
                 joystick_x = received_data[0];
                 joystick_y = received_data[1];
 		clear_list.pop_back();
@@ -279,9 +309,10 @@ void Mmap::sendall(SerialPort& serial_port, char& joystick_x, char& joystick_y)
 	{
 		auto element = update_list.back();
         	i2screen(serial_port,element.type,element.x_start,element.y_start,element.w,element.h,element.color);
-		//std::cout << "\n NOT CLEARED: ELEMENT INFO: x_start, y_start,w,h: " << element.x_start << ", " << element.y_start << ", " << element.w << ", " << element.h << "Color: " << element.color  << std::endl;
-		std::vector<unsigned char> received_data(2);
-        	serial_port.Read(received_data, received_data.size());
+		std::cout << "\n NOT CLEARED: ELEMENT INFO: x_start, y_start,w,h: \t" << element.x_start << "\t, " << element.y_start << "\t, " << element.w << "\t, " << element.h << "Color: " << element.color  << std::endl;
+		std::vector<unsigned char> received_data;//(2);
+        	//serial_port.Read(received_data, received_data.size());
+		smart_read(serial_port,received_data);
 		joystick_x = received_data[0];
 		joystick_y = received_data[1];
 		update_list.pop_back();
@@ -395,54 +426,48 @@ void Mmap::generate_object_gps(int gps_location)
 
 }
 
-bool Mmap::check_valid_x(int8_t move)
+bool Mmap::check_valid_x(int8_t move, to_transmit element)
 {
 	bool to_return = true;
 	move = -move;
-	for(auto element:linked_list)
+	uint16_t x_1 = element.x_start;
+	uint16_t x_2 = element.x_start+element.w;
+	for(uint16_t x_c=x_1; x_c<x_2;x_c++)
 	{
-		uint16_t x_1 = element.x_start;
-		uint16_t x_2 = element.x_start+element.w;
-		for(uint16_t x_c=x_1; x_c<x_2;x_c++)
+		if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2)
 		{
-			if(x_c + move > (240/2)-15+COMP && x_c + move < ((240/2)-15+25)-COMP && element.id != 2)
-			{
-				to_return = false;
-			}
-			else
-			{
+			to_return = false;
+		}
+		else
+		{
 				//std::cout << "This set passed x_c:\t" << x_c << "\tMove::\t" << static_cast<int>(move) << "\tstart:\t" << (240/2)-16 << std::endl;
 				//we have decided to move left and thus must clear right side:
 				//add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
 				//we must also draw the new location on the left
 				//add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
-			}
 		}
 	}
 	return to_return;
 }
-bool Mmap::check_valid_y(int8_t move)
+bool Mmap::check_valid_y(int8_t move, to_transmit element)
 {
 	bool to_return = true;
-        for(auto element:linked_list)
-        {
-		uint16_t y_1 = element.y_start;
-                uint16_t y_2 = element.y_start+element.h;
-                for(uint16_t y_c=y_1; y_c<y_2;y_c++)
-		{
-                	if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2)
-                	{
-                        	to_return = false;
-                	}
-                	else
-                	{
+	uint16_t y_1 = element.y_start;
+        uint16_t y_2 = element.y_start+element.h;
+        for(uint16_t y_c=y_1; y_c<y_2;y_c++)
+	{
+                if(y_c + move > (320/2)-5+COMP && y_c + move < (320/2)-5+25-COMP && element.id != 2)
+                {
+                        to_return = false;
+                }
+                else
+                {
                         	//we have decided to move left and thus must clear right side:
                         	//add_clear_list(1,x_start+x_width+move,y_start,abs(move),y_height,ST7789_BLACK,2);
                         	//we must also draw the new location on the left
                         	//add_update_list(1,x_start+move,y_start,abs(move),y_height,color,2);
-                	}
-		}
-        }
+                }
+	}
         return to_return;
 }
 

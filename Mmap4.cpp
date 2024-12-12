@@ -62,7 +62,9 @@ void Mmap::encounter(SerialPort& serial_port)
 		if(initialize)
 		{
 			initialize = !initialize;
-			indicate_bitmap(serial_port,0);
+			std::srand(time(0));
+                        uint16_t rand_pokemon = (abs(std::rand())%10);
+			indicate_bitmap(serial_port,rand_pokemon);
 		}
 		else
 		{
@@ -80,7 +82,21 @@ void Mmap::encounter(SerialPort& serial_port)
 			std::cout << "X_loc:\t" << linked_list.back().x_start;
 			if(sw_1 == '1')
 			{
-                        	indicate_bitmap(serial_port,11);
+				//std::srand(time(0));
+        			//uint16_t rand_pokemon = 1 + (abs(std::rand())%9);
+				int16_t loc = linked_list.back().x_start;
+				uint16_t distance = abs(loc-120);
+				uint16_t odds = 100-distance; //should be 100 to 20
+				uint16_t random = std::rand()%101;
+				std::cout << "Odds of catch: " << odds << std::endl;
+				if(random > odds)
+				{
+                        		indicate_bitmap(serial_port,11);
+				}
+				else
+				{
+					indicate_bitmap(serial_port,10);
+				}
 				return;
 			}
 		}
@@ -124,27 +140,43 @@ std::string filename;
 
 if(choice == 0)
 {
-	filename = "bitmaps/charizard_bitmap.txt";
+	filename = "bitmaps/nidoran_bitmap.txt";
 }
 else if(choice == 1)
 {
-	
+	filename = "bitmaps/charizard_bitmap.txt";
 }
 else if(choice == 2)
 {
-
+	filename = "bitmaps/luc_bitmap.txt";
 }
 else if(choice == 3)
 {
+	filename = "bitmaps/nidoran_bitmap.txt";
 }
 else if(choice == 4)
 {
+	filename = "bitmaps/pikachu_bitmap.txt";
 }
 else if(choice == 5)
 {
+	filename = "bitmaps/monkey_bitmap.txt";
 }
 else if(choice == 6)
 {
+	filename = "bitmaps/monkey_2_bitmap.txt";
+}
+else if(choice == 7)
+{
+	filename = "bitmaps/mewtwo_bitmap.txt";
+}
+else if(choice == 8)
+{
+	filename = "bitmaps/slowbro_bitmap.txt";
+}
+else if(choice == 9)
+{
+	filename = "bitmaps/eevee_bitmap.txt";
 }
 else if(choice == 10)
 {

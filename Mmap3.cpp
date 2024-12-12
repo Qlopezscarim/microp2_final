@@ -356,8 +356,8 @@ void Mmap::Check_TB()
 	}
 	else if(abs(y_displacement) > 320)
 	{
-		GTerrain(1);
-		y_displacement = 0;
+		//GTerrain(1);
+		//y_displacement = 0;
 	}
 }
 
@@ -366,15 +366,15 @@ void Mmap::GTerrain(uint8_t to_spawn)
 	std::cout << "--------------SPAWNING SOMETHING!-----------------\n";
         if(cur_direction == "L")
         {
-                //we moving left
+                //we moving RIGHT IN REALITY (object moving left)
 
                 
-                std::srand(time(0)+1);
+                /*std::srand(time(0)+1);
                 uint16_t x_start = 0;
                 x_start = x_start-5;
                 std::srand(time(0)+2);
                 uint16_t y_start = 20 + abs(std::rand())%260;
-                Terrain2(x_start,y_start,1);
+                Terrain2(x_start,y_start,1);*/
         }
         else if(cur_direction == "R")
         {
@@ -387,8 +387,16 @@ void Mmap::GTerrain(uint8_t to_spawn)
                 x_start = x_start+5;
                 std::srand(time(0)+2);
                 uint16_t y_start = 20 + abs(std::rand())%260;
-                //std::cout << "Spawn one at:
-                Terrain2(x_start,y_start,1);
+                
+		uint16_t to_spawn = std::rand()%2;
+		if(to_spawn == 0)
+		{
+                	Terrain2(x_start,y_start,1);
+		}
+		else
+		{
+			SimpleWeed(x_start,y_start,1);
+		}
                 std::cout << "\nSpawned a tree at x_start: \t" << x_start << "y_start:\t " << y_start;
         }
         else if(cur_direction == "F")

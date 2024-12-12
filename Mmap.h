@@ -61,12 +61,24 @@
 
 class Mmap
 {
+public:
+struct to_transmit
+{
+        uint8_t type;
+        uint16_t x_start;
+        uint16_t y_start;
+        uint16_t w;
+        uint16_t h;
+        uint16_t color;
+        uint8_t id;
+};
 private:
-bool check_valid_x(int8_t move);
-bool check_valid_y(int8_t move);
+bool check_valid_x(int8_t move, to_transmit element);
+bool check_valid_y(int8_t move, to_transmit element);
 bool check_x_collision(int8_t move);
 bool check_y_collision(int8_t move);
 void retry_write(SerialPort& serial_port, const std::string& data);
+void smart_read(SerialPort& serial_port, std::vector<unsigned char>& received_data);
 
 public:
 uint16_t player_x_start;
@@ -78,16 +90,6 @@ int32_t y_displacement = 0;
 int gps_class;
 std::string cur_direction = "F";
 std::string old_direction = "B";
-struct to_transmit
-{
-	uint8_t type;
-	uint16_t x_start;
-	uint16_t y_start;
-	uint16_t w;
-	uint16_t h;
-	uint16_t color;
-	uint8_t id;
-};
 uint16_t old_bitmap[Y_D][X_D];
 uint16_t new_bitmap[Y_D][X_D];
 
