@@ -99,7 +99,7 @@ std::vector<to_transmit> clear_list;
 std::vector<to_transmit> update_list;
 std::vector<to_transmit> context_list;
 uint16_t num_objects;
-Mmap(int gps_class, std::string User);
+Mmap(int gps_class, std::string& User_in);
 void moveall(char x, char y);
 void init_screen(SerialPort& serial_port);
 void sendall(SerialPort& serial_port,char& joystick_x, char& joystick_y, char& sw1, char&sw2);
@@ -152,6 +152,7 @@ void write_to_file(int pokemon);
 void read_file(std::vector<int>& to_return);
 void pokedex(SerialPort& serial_port);
 void nav_pokedex(int& index,char joystick_x, int size_pokedex);
+void start_screen(SerialPort& serial_port);
 
 };
 #endif

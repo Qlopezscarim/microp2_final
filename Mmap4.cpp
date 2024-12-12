@@ -59,6 +59,8 @@ void Mmap::encounter(SerialPort& serial_port)
 
 	int rand_pokemon = 0;
 
+	uint16_t displacement = 0;
+
 	while(1)
 	{
 		sendall(serial_port,joystick_x,joystick_y,sw_1,sw_2);       //sends updated list and gets joystick input
@@ -74,6 +76,7 @@ void Mmap::encounter(SerialPort& serial_port)
 		else
 		{
 			mov_rect(left);
+			displacement++;
         		rect_to_bitmap(linked_list, 1);     //updates the new bitmap to hold where everything newis
 			
 			
@@ -94,7 +97,7 @@ void Mmap::encounter(SerialPort& serial_port)
 				uint16_t odds = 100-distance; //should be 100 to 20
 				uint16_t random = std::rand()%101;
 				std::cout << "Odds of catch: " << odds << std::endl;
-				if(random > odds)
+				if(random > odds || displacement < 5)
 				{
                         		indicate_bitmap(serial_port,11);
 				}
@@ -193,6 +196,10 @@ else if(choice == 11)
 {
 	filename = "bitmaps/escaped_bitmap.txt";
 }
+else if(choice == 12)
+{
+	filename = "bitmaps/start_bitmap.txt";
+}
 
 std::ifstream file(filename);
 if (!file)
@@ -278,7 +285,7 @@ void Mmap::mov_rect(bool& left)
 
 void Mmap::write_to_file(int rand_pokemon)
 {
-        std::ofstream file("users/" + std::string("defualt") + ".txt", std::ios::app);
+        std::ofstream file("users/" + std::string(User) + ".txt", std::ios::app);
         if (!file) {
                          std::cerr << "Unable to open or create file!" << std::endl;
                    }
@@ -290,7 +297,8 @@ void Mmap::write_to_file(int rand_pokemon)
 void Mmap::read_file(std::vector<int>& to_return)
 {
 	// Open the file in read mode
-    std::ifstream file("users/" + std::string("defualt") + ".txt");
+    //std::ifstream file("users/" + std::string("defualt") + ".txt");
+	std::ifstream file("users/" + std::string(User) + ".txt");
     if (!file) {
         std::cerr << "Unable to open file for reading!" << std::endl;
         return;  // Exit the function if the file can't be opened
@@ -300,6 +308,7 @@ void Mmap::read_file(std::vector<int>& to_return)
     // Read the file line by line and add each value to the vector
     while (file >> value) {
         to_return.push_back(value);
+	std::cout << "READ " << value << std::endl;
     }
 
     // Close the file
@@ -404,4 +413,50 @@ void Mmap::nav_pokedex(int& index,char joystick_x_in, int size_pokedex)
 		}
 	}
 
+}
+
+
+void Mmap::start_screen(SerialPort& serial_port)
+{
+        //THIS MUST BE THE MOST RECENT ITEM!
+
+
+        char joystick_x = 5;
+        char joystick_y = 5;
+        char sw_1 = '0';
+        char sw_2 = '0';
+
+        bool initialize = true;
+
+
+
+        while(1)
+        {
+                sendall(serial_port,joystick_x,joystick_y,sw_1,sw_2);       //sends updated list and gets joystick input
+                //THIS IS THE DEAD SPACE the TIVA is now waiting for a uart transmission interrupt
+                //can cheack to break here
+                if(initialize)
+                {
+                        initialize = !initialize;
+                        indicate_bitmap(serial_port,12); // should be start screen (12)
+                }
+                else
+                {
+                        rect_to_bitmap(linked_list, 1);     //updates the new bitmap to hold where everything newis
+
+
+                        win_diff();//stores non-zero values where there are changes in window into old_bitmap
+
+
+//                        rectangulize();                                   //puts in update_list all the things that need to be drawn
+
+                        rect_to_bitmap(linked_list, 0);     //updating old bitmap
+                        rect_to_bitmap(linked_list, 1);     //updates the new bitmap -- still need to clear old stuff!
+
+                        if(sw_1 == '1')
+                        {
+                                return;
+                        }
+                }
+        }
 }

@@ -10,7 +10,14 @@
 
 long random_gps;
 
-int main() {
+
+
+
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <your_string>" << std::endl;
+        return 1; // Exit with error code
+    }
     using namespace LibSerial;
 
     //srand((unsigned) time(NULL));
@@ -37,8 +44,10 @@ int main() {
         }
 
         // Write data to the serial port.
-	std::string name = "defualt";
+	std::string name = argv[1];
 	Mmap game_instance = Mmap(random_gps,name);
+
+	//game_instance.start_screen(serial_port);
 
 	/*int rand_pokemon = 9;
 

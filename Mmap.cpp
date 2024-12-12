@@ -68,9 +68,9 @@ void Mmap::smart_read(SerialPort& serial_port,std::vector<unsigned char>& receiv
 
 
 
-Mmap::Mmap(int gps_class, std::string User)
+Mmap::Mmap(int gps_class, std::string& User_in)
 {
-	User = User;
+	User = User_in;
 	gps_class = gps_class;
 	for(int i=0; i<Y_D; i++)
 	{
@@ -253,7 +253,7 @@ void Mmap::moveall(char x, char y)
 	for (auto& element : linked_list)
 	{
 		//can make this more efficient by only running if joystick certian value ig
-		if(element.id == 0 || element.id == 3) //if the element is intended to be moved
+		if(element.id == 0 || element.id == 3 || element.id == 7) //if the element is intended to be moved
 		{
 			//joystick_x = joystick_x - 5;
 			//joystick_y = joystick_y - 5;
@@ -379,13 +379,17 @@ bool Mmap::check_collision(char x, char y)
         //std::cout << "\n\n joystick_x: " << joystick_x << " " << x;
         //std::cout << "\n\n joystick_y " <<  joystick_y << " " << y <<std::endl;
 	bool is_collision = false;
-	for(auto element: linked_list)
+	for(auto& element: linked_list)
 	{
         	bool x_valid = check_x_collision(joystick_x,element);
         	bool y_valid = check_y_collision(joystick_y,element);
         	bool collision_occured = x_valid && y_valid;
 		if(collision_occured)
-		{is_collision = true;}
+		{
+		is_collision = true;
+		element.id = 7;
+		}
+		//element.id = 2; //no longer interactable
 	}
 	if(is_collision)
 	{std::cout << "COLLISION OCCURED!\n" <<std::endl;}
